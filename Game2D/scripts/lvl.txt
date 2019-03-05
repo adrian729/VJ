@@ -1,0 +1,25 @@
+TILEMAP
+-- Size of tile map in tiles
+-- Tile size & block size
+-- Tilesheet
+-- Number of tiles in tilesheet
+11111111111111111111
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+1                  1
+11111111111111111111

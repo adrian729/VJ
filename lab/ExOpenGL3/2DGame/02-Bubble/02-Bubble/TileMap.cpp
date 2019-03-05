@@ -105,7 +105,10 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 	vector<float> vertices;
 
 	halfTexel = glm::vec2(0.5f / tilesheet.width(), 0.5f / tilesheet.height());
-	for (int j = 0; j < mapSize.y; j++)
+
+	// Change 'y', we want our tiles printed first x (0 to max) and then y (max to 0)
+	//for (int j = 0; j < mapSize.y; j++)
+	for (int j = mapSize.y - 1; j >= 0; j--)
 	{
 		for (int i = 0; i < mapSize.x; i++)
 		{
@@ -114,7 +117,8 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 			{
 				// Non-empty tile
 				nTiles++;
-				posTile = glm::vec2(minCoords.x + i * tileSize, minCoords.y + j * tileSize);
+				//posTile = glm::vec2(minCoords.x + i * tileSize, minCoords.y + j * tileSize);
+				posTile = glm::vec2(minCoords.x + i * tileSize, minCoords.y + (j - 1) * tileSize); //j - 1 since our tiles starts at half a block
 				texCoordTile[0] = glm::vec2(float((tile - 1) % 2) / tilesheetSize.x, float((tile - 1) / 2) / tilesheetSize.y);
 				texCoordTile[1] = texCoordTile[0] + tileTexSize;
 				//texCoordTile[0] += halfTexel;
