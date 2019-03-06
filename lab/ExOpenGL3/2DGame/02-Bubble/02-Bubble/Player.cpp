@@ -13,49 +13,46 @@
 
 enum PlayerAnims
 {
-	STAND_LEFT, STAND_RIGHT, MOVE_LEFT, MOVE_RIGHT
+	STAND_LEFT, STAND_RIGHT, MOVE_LEFT, MOVE_RIGHT, JUMP, JUMP_LEFT, JUMP_RIGHT
 };
 
 
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 {
 	bJumping = false;
-	float xdiv = 1.f / 8;
-	float ydiv = 1.f / 3;
+	int xcols = 8;
+	int ycols = 5;
 	spritesheet.loadFromFile("images/HarukoSprites-prova.png", TEXTURE_PIXEL_FORMAT_RGBA);
-	sprite = Sprite::createSprite(glm::ivec2(64, 64), glm::vec2(xdiv, ydiv), &spritesheet, &shaderProgram);
-	sprite->setNumberAnimations(4);
+	sprite = Sprite::createSprite(glm::ivec2(64, 64), glm::vec2(1.f / xcols, 1.f / ycols), &spritesheet, &shaderProgram);
+	sprite->setNumberAnimations(7);
 
 	sprite->setAnimationSpeed(STAND_LEFT, 8);
 	sprite->addKeyframe(STAND_LEFT, glm::vec2(0.f, 0.f));
 
 	sprite->setAnimationSpeed(STAND_RIGHT, 8);
-	sprite->addKeyframe(STAND_RIGHT, glm::vec2(xdiv, 0.f));
+	sprite->addKeyframe(STAND_RIGHT, glm::vec2(1.f / xcols, 0.f));
 
 	sprite->setAnimationSpeed(MOVE_LEFT, 8);
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(0.f, ydiv));
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(xdiv, ydiv));
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(2 * xdiv, ydiv));
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(3 * xdiv, ydiv));
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(4 * xdiv, ydiv));
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(5 * xdiv, ydiv));
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(6 * xdiv, ydiv));
-	sprite->addKeyframe(MOVE_LEFT, glm::vec2(7 * xdiv, ydiv));
+	for (int i = 0; i < 8; i++)
+	{
+		sprite->addKeyframe(MOVE_LEFT, glm::vec2(float(i) / xcols, 1.f / ycols));
+	}
 
 	sprite->setAnimationSpeed(MOVE_RIGHT, 8);
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(0.f, 2 * ydiv));
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(xdiv, 2 * ydiv));
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(2 * xdiv, 2 * ydiv));
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(3 * xdiv, 2 * ydiv));
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(4 * xdiv, 2 * ydiv));
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(5 * xdiv, 2 * ydiv));
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(6 * xdiv, 2 * ydiv));
-	sprite->addKeyframe(MOVE_RIGHT, glm::vec2(7 * xdiv, 2 * ydiv));
+	for (int i = 0; i < 8; i++)
+	{
+		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(float(i) / xcols, 2.f / ycols));
+	}
+
+	sprite->setAnimationSpeed(JUMP_LEFT, 8);
+	for (int i = 0; i < 8; i++)
+	{
+		sprite->addKeyframe(JUMP_LEFT, glm::vec2(float(i) / xcols, 3.f / ycols));
+	}
 
 	sprite->changeAnimation(0);
 	tileMapDispl = tileMapPos;
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
-
 }
 
 void Player::update(int deltaTime)
@@ -63,13 +60,26 @@ void Player::update(int deltaTime)
 	sprite->update(deltaTime);
 	if (Game::instance().getSpecialKey(GLUT_KEY_LEFT))
 	{
-		if (sprite->animation() != MOVE_LEFT)
-			sprite->changeAnimation(MOVE_LEFT);
-		posPlayer.x -= 2;
-		if (map->collisionMoveLeft(posPlayer, glm::ivec2(64, 64)))
-		{
-			posPlayer.x += 2;
-			sprite->changeAnimation(STAND_LEFT);
+		if (!bJumping) {
+			if (sprite->animation() != MOVE_LEFT)
+				sprite->changeAnimation(MOVE_LEFT);
+			posPlayer.x -= 2;
+			if (map->collisionMoveLeft(posPlayer, glm::ivec2(64, 64)))
+			{
+				posPlayer.x += 2;
+				sprite->changeAnimation(MOVE_LEFT);
+			}
+		}
+		else { //TODO: MAL, si salta sense moures tambe ha de fer aquesta animacio, canviar
+			if (sprite->animation() != JUMP_LEFT)
+				sprite->changeAnimation(JUMP_LEFT);
+			posPlayer.x -= 2;
+			if (map->collisionMoveLeft(posPlayer, glm::ivec2(64, 64)))
+			{
+				posPlayer.x += 2;
+				sprite->changeAnimation(JUMP_LEFT);
+				bJumping = false;
+			}
 		}
 	}
 	else if (Game::instance().getSpecialKey(GLUT_KEY_RIGHT))
@@ -121,6 +131,8 @@ void Player::update(int deltaTime)
 	}
 
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+	cout << "posPlayer " << posPlayer.x << " " << posPlayer.y << endl;
+	cout << "posPlayerMap " << float(tileMapDispl.x + posPlayer.x) << " " << float(tileMapDispl.y + posPlayer.y) << endl;
 }
 
 void Player::render()
