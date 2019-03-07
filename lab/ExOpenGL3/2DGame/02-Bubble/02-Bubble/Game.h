@@ -18,7 +18,7 @@ class Game
 public:
 	Game() {}
 	
-	
+	bool gravity;
 	static Game &instance()
 	{
 		static Game G;
@@ -47,7 +47,7 @@ private:
 	Scene scene;                      // Scene to render
 	bool keys[256], specialKeys[256]; // Store key states so that 
 	                                  // we can have access at any time
-
+	bool releaseKey[256], releaseSpecialKeys[256];
 };
 
 

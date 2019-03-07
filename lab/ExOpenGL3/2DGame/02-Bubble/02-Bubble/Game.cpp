@@ -7,6 +7,13 @@
 void Game::init()
 {
 	bPlay = true;
+	gravity = true;
+	for (int i = 0; i < sizeof(releaseKey); i++) {
+		releaseKey[i] = true;
+	}
+	for (int i = 0; i < sizeof(releaseSpecialKeys); i++) {
+		releaseSpecialKeys[i] = true;
+	}
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 	scene.init();
 }
@@ -26,24 +33,30 @@ void Game::render()
 
 void Game::keyPressed(int key)
 {
-	if(key == 27) // Escape code
+	if (key == 27) // Escape code
 		bPlay = false;
+	if (key == 32 && releaseKey[key])
+		gravity = !gravity;
 	keys[key] = true;
+	releaseKey[key] = false;
 }
 
 void Game::keyReleased(int key)
 {
 	keys[key] = false;
+	releaseKey[key] = true;
 }
 
 void Game::specialKeyPressed(int key)
 {
 	specialKeys[key] = true;
+	releaseSpecialKeys[key] = false;
 }
 
 void Game::specialKeyReleased(int key)
 {
 	specialKeys[key] = false;
+	releaseSpecialKeys[key] = true;
 }
 
 void Game::mouseMove(int x, int y)

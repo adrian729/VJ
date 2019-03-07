@@ -117,8 +117,8 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 			{
 				// Non-empty tile
 				nTiles++;
-				//posTile = glm::vec2(minCoords.x + i * tileSize, minCoords.y + j * tileSize);
-				posTile = glm::vec2(minCoords.x + i * tileSize, minCoords.y + (j - 1) * tileSize); //j - 1 since our tiles starts at half a block
+				//j - 1 perque les nostres tiles comencen a mig block (en les y). -4 i +4 per donar "efecte 2.5D" una mica
+				posTile = glm::vec2(minCoords.x + i * tileSize - 4, minCoords.y + (j - 1) * tileSize + 4);
 				texCoordTile[0] = glm::vec2(float((tile - 1) % 2) / tilesheetSize.x, float((tile - 1) / 2) / tilesheetSize.y);
 				texCoordTile[1] = texCoordTile[0] + tileTexSize;
 				//texCoordTile[0] += halfTexel;
@@ -207,6 +207,29 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, i
 
 	return false;
 }
+
+bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const
+{
+	int x0, x1, y;
+
+	x0 = pos.x / tileSize;
+	x1 = (pos.x + size.x - 1) / tileSize;
+	y = pos.y / tileSize;
+	for (int x = x0; x <= x1; x++)
+	{
+		if (map[y*mapSize.x + x] != 0)
+		{
+			if (*posY - tileSize * (y + 1) <= 4)
+			{
+				*posY = tileSize * (y + 1);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 
 
 
