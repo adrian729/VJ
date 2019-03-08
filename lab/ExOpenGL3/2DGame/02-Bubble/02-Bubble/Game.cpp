@@ -8,6 +8,7 @@ void Game::init()
 {
 	bPlay = true;
 	gravity = true;
+	ground = false;
 	for (int i = 0; i < sizeof(releaseKey); i++) {
 		releaseKey[i] = true;
 	}
@@ -35,7 +36,7 @@ void Game::keyPressed(int key)
 {
 	if (key == 27) // Escape code
 		bPlay = false;
-	if (key == 32 && releaseKey[key])
+	if (key == 32 && releaseKey[key] && ground)
 		gravity = !gravity;
 	keys[key] = true;
 	releaseKey[key] = false;

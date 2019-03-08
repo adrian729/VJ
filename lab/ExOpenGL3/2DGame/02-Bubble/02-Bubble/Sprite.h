@@ -22,6 +22,8 @@ public:
 
 	Sprite(const glm::vec2 &quadSize, const glm::vec2 &sizeInSpritesheet, Texture *spritesheet, ShaderProgram *program);
 
+	glm::vec2 size;
+
 	void update(int deltaTime);
 	void render() const;
 	void free();

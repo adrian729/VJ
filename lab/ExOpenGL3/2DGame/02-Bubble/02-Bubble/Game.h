@@ -18,7 +18,7 @@ class Game
 public:
 	Game() {}
 	
-	bool gravity;
+	bool gravity, ground;
 	static Game &instance()
 	{
 		static Game G;
