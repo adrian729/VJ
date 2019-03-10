@@ -22,10 +22,12 @@ public:
 	void setPosition(const glm::vec2 &pos);
 	
 private:
-	bool bJumping, left;
+	bool jumping;
+	bool left, mv; // direccio mira pj i si s'ha mogut
 	glm::ivec2 tileMapDispl, posPlayer;
-	int jumpAngle, startY, g, currentSprite;
-	glm::ivec2 spriteSize[2];
+	int jumpAngle, startY, currentSpriteSheet;
+	int g; // direccio gravetat (1 normal -1 invertida)
+	glm::ivec2 spriteSize[2]; // tamany dels sprites del sheet
 	Texture spritesheet[2];
 	Sprite *sprite[2];
 	TileMap *map;
