@@ -1,2 +1,8 @@
 ﻿  Game.cpp
-  02-primitives.vcxproj -> D:\USUARIS\a.sanchez.albanell\VJ\ExOpenGL3\OpenGL\02-primitives\Debug\02-primitives.exe
+  main.cpp
+  Quad.cpp
+  Scene.cpp
+  Shader.cpp
+  ShaderProgram.cpp
+  Generating Code...
+  02-primitives.vcxproj -> D:\TEMP\VJ\lab\ExOpenGL3\OpenGL\02-primitives\Debug\02-primitives.exe
