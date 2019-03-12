@@ -1,7 +1,7 @@
 TILEMAP
-35 25-- Size of tile map in tiles
+35 25 -- Size of tile map in tiles
 32 64	-- Tile size & block size
-images/ground-demo-2_5D.png -- Tilesheet
+images/tileSheet-prova.png -- Tilesheet
 8 8	-- Number of tiles in tilesheet
 11111111111111111111111111111111111
 1                                 1
