@@ -11,6 +11,11 @@
 
 // Scene contains all the entities of our game.
 // It is responsible for updating and render them.
+// L'escena es pinta en 3 capes (i player).
+// 1. Background
+// 2. Mapa (tiles)
+// 3. Player
+// 4. Mapa (tiles) front, per donar sensació "3D" al girar la gravetat i en colisions a dalt o la dreta.
 
 
 class Scene
@@ -25,6 +30,7 @@ public:
 	void render();
 
 private:
+	void calculateProjectionMatrix();
 	void initShaders();
 
 private:
@@ -33,8 +39,9 @@ private:
 	Player *player;
 	ShaderProgram texProgram;
 	float currentTime;
-	float ra;
+	float V, A;
 	glm::mat4 projection;
+	glm::ivec2 sceneSize;
 };
 
 

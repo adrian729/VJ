@@ -7,8 +7,8 @@
 #include "Game.h"
 
 
-#define SCREEN_X 64
-#define SCREEN_Y 64
+#define SCREEN_X 0
+#define SCREEN_Y 0
 
 #define INIT_PLAYER_X_TILES 17
 #define INIT_PLAYER_Y_TILES 17
@@ -35,15 +35,15 @@ Scene::~Scene() {
 void Scene::init() {
 	initShaders();
 	map = TileMap::createTileMap("levels/lvl.txt", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	sceneSize = map->getMapSize()*map->getTileSize();
 	// -4 i +4 per donar "efecte 2.5D" una mica en els tiles, aixi que ho afegim tambe al background per corretgor la posicio.
-	background = Background::createBackground("images/background-prova.png", glm::vec2(SCREEN_X - 4, SCREEN_Y + 4), map->getMapSize()*map->getTileSize(), texProgram);
+	background = Background::createBackground("images/background-prova.png", glm::vec2(SCREEN_X - 4, SCREEN_Y + 4), sceneSize, texProgram);
 	frontMap = TileMap::createTileMap("levels/lvl-front.txt", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	player = new Player();
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
 	player->setPosition(glm::vec2(INIT_PLAYER_X_TILES * map->getTileSize(), INIT_PLAYER_Y_TILES * map->getTileSize()));
 	player->setTileMap(map);
-	ra = float(SCREEN_WIDTH - 1) / float(SCREEN_HEIGHT - 1);
-	projection = glm::ortho(0.f, float(SCREEN_WIDTH - 1)*ra, float(SCREEN_HEIGHT - 1), 0.f);
+	calculateProjectionMatrix();
 	currentTime = 0.0f;
 }
 
@@ -53,30 +53,28 @@ void Scene::update(int deltaTime) {
 }
 
 void Scene::render() {
-	glm::mat4 modelview;
-
-	cout << "WSize " << glutGet(GLUT_WINDOW_WIDTH) << " " << glutGet(GLUT_WINDOW_HEIGHT) << endl;
-	if (glutGet(GLUT_WINDOW_HEIGHT) != 0.f) ra = float(glutGet(GLUT_WINDOW_WIDTH)) / glutGet(GLUT_WINDOW_HEIGHT);
-
-	projection = glm::ortho(0.f, float(SCREEN_WIDTH - 1)*ra, float(SCREEN_HEIGHT - 1), 0.f);
-
+	glm::mat4 modelview = glm::mat4(1.0f);
+	calculateProjectionMatrix();
 	texProgram.use();
 	texProgram.setUniformMatrix4f("projection", projection);
 	texProgram.setUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
-	modelview = glm::mat4(1.0f);
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	background->render();
 	map->render();
 	player->render();
-	// Redeclare things to render map or static things after player again or it wouldn't work
-	texProgram.use();
-	texProgram.setUniformMatrix4f("projection", projection);
-	texProgram.setUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
-	modelview = glm::mat4(1.0f);
+	// Tornar a fer set de modelview i texCoordDispl ja que player->render() les modifica.
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	frontMap->render();
+}
+
+void Scene::calculateProjectionMatrix() {
+	V = A = 1.f;
+	if (glutGet(GLUT_WINDOW_HEIGHT) > 0) V = float(glutGet(GLUT_WINDOW_WIDTH)) / glutGet(GLUT_WINDOW_HEIGHT);
+	if (sceneSize.y != 0) A = float(sceneSize.x) / sceneSize.y;
+	if (V >= A)  projection = glm::ortho(0.f, (V / A) * float(sceneSize.x), float(sceneSize.y), 0.f);
+	else projection = glm::ortho(0.f, float(sceneSize.x), (A / V) * float(sceneSize.y), 0.f);
 }
 
 void Scene::initShaders() {
