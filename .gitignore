@@ -1,8 +1,8 @@
-*/Debug/*.exe
-Debug/*.ilk
-Debug/*.pdb
-Debug/*.obj
-Debug/*.tlog
-Debug/*.log
-Debug/*.idb
-.vs
+**/Debug/*.exe
+**/Debug/*.ilk
+**/Debug/*.pdb
+**/Debug/*.obj
+**/Debug/*.tlog
+**/Debug/*.log
+**/Debug/*.idb
+**/.vs
