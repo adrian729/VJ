@@ -1,7 +1,6 @@
-TILEMAP
-35 25 -- Size of tile map in tiles
+FRONTTILEMAP
 32 64	-- Tile size & block size
-images/frontTileSheet-prova.png -- Tilesheet
+images/frontTileSheet-prova.png -- Front Tilesheet
 8 8	-- Number of tiles in tilesheet
 11111111111111111111111111111111111
 1                                 1

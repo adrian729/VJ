@@ -17,12 +17,13 @@ class TileMap {
 
 public:
 	// Tile maps can only be created inside an OpenGL context
-	static TileMap *createTileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program);
+	static TileMap *createTileMap(const string &levelFile, const string &frontTilesFile, const glm::vec2 &minCoords, ShaderProgram &program);
 
-	TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program);
+	TileMap(const string &levelFile, const string &frontTilesFile, const glm::vec2 &minCoords, ShaderProgram &program);
 	~TileMap();
 
 	void render() const;
+	void renderFront() const;
 	void free();
 
 	int getTileSize() const { return tileSize; }
@@ -34,17 +35,19 @@ public:
 	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const;
 
 private:
-	bool loadLevel(const string &levelFile);
+	bool loadLevel(const string &levelFile, const string &frontTilesFile);
 	void prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program);
 
 private:
 	GLuint vao, vbo;
+	GLuint vaoFront, vboFront;
 	GLint posLocation, texCoordLocation;
-	glm::ivec2 position, mapSize, tilesheetSize;
+	glm::ivec2 position, mapSize, tilesheetSize, frontTilesheetSize;
 	int tileSize, blockSize;
-	Texture tilesheet;
-	glm::vec2 tileTexSize;
-	int *map;
+	int frontTileSize, frontBlockSize;
+	Texture tilesheet, frontTileSheet;
+	glm::vec2 tileTexSize, frontTileTexSize;
+	int *map, *frontMap;
 };
 
 

@@ -34,11 +34,10 @@ Scene::~Scene() {
 
 void Scene::init() {
 	initShaders();
-	map = TileMap::createTileMap("levels/lvl.txt", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	map = TileMap::createTileMap("levels/lvl.txt", "levels/lvl-front.txt", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	sceneSize = map->getMapSize()*map->getTileSize();
 	// -4 i +4 per donar "efecte 2.5D" una mica en els tiles, aixi que ho afegim tambe al background per corretgor la posicio.
 	background = Background::createBackground("images/background-prova.png", glm::vec2(SCREEN_X - 4, SCREEN_Y + 4), sceneSize, texProgram);
-	frontMap = TileMap::createTileMap("levels/lvl-front.txt", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	player = new Player();
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
 	player->setPosition(glm::vec2(INIT_PLAYER_X_TILES * map->getTileSize(), INIT_PLAYER_Y_TILES * map->getTileSize()));
@@ -66,7 +65,7 @@ void Scene::render() {
 	// Tornar a fer set de modelview i texCoordDispl ja que player->render() les modifica.
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
-	frontMap->render();
+	map->renderFront();
 }
 
 void Scene::calculateProjectionMatrix() {

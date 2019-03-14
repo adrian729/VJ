@@ -29,6 +29,7 @@ private:
 	int g; // direccio gravetat (1 normal -1 invertida)
 	float gravityStep;
 	glm::ivec2 spriteSize[2]; // tamany dels sprites del sheet
+	glm::ivec2 startColision;
 	Texture spritesheet[2];
 	Sprite *sprite[2];
 	TileMap *map;
