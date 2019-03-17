@@ -8,15 +8,13 @@
 using namespace std;
 
 
-TileMap *TileMap::createTileMap(const string &levelFile, const string &frontTilesFile, const glm::vec2 &minCoords, ShaderProgram &program) {
-	TileMap *map = new TileMap(levelFile, frontTilesFile, minCoords, program);
-
+TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
+	TileMap *map = new TileMap(levelName, minCoords, program);
 	return map;
 }
 
-
-TileMap::TileMap(const string &levelFile, const string &frontTilesFile, const glm::vec2 &minCoords, ShaderProgram &program) {
-	loadLevel(levelFile, frontTilesFile);
+TileMap::TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
+	loadLevel(levelName);
 	prepareArrays(minCoords, program);
 }
 
@@ -53,23 +51,53 @@ void TileMap::free() {
 
 }
 
-bool TileMap::loadLevel(const string &levelFile, const string &frontTilesFile)
-{
+bool TileMap::loadLevel(const string &levelName) {
+	string levelFile = "levels/" + levelName + "/level.txt";
+	ifstream fin;
+	string line;
+	stringstream sstream;
+
+	fin.open(levelFile.c_str());
+	if (!fin.is_open())
+		return false;
+	sstream.clear(); // idk why, without this it doesn't work
+	getline(fin, line);
+	sstream.str(line);
+	sstream >> mapSize.x >> mapSize.y;
+	getline(fin, line);
+	sstream.str(line);
+	sstream >> tileSize;
+	fin.close();
+
+	bool lbackground = loadBackground("levels/" + levelName + "/background.txt");
+	cout << "bck: " << lbackground << endl;
+	bool ltiles = loadTiles("levels/" + levelName + "/tileMap.txt");
+	cout << "tiles " << ltiles << endl;
+	bool lfrontTiles = loadFrontTiles("levels/" + levelName + "/frontTiles.txt");
+	cout << "front " << lfrontTiles << endl;
+
+	return lbackground && ltiles && lfrontTiles;
+}
+
+bool TileMap::loadBackground(const string &backgroundFile) {
+	return true;
+}
+
+bool TileMap::loadTiles(const string &tilesFile) {
 	ifstream fin;
 	string line, tilesheetFile, frontTilesheetFile;
 	stringstream sstream;
 	char tile;
 
 	// Tiles
-	fin.open(levelFile.c_str());
+	fin.open(tilesFile.c_str());
 	if (!fin.is_open())
 		return false;
+	/*
 	getline(fin, line);
 	if (line.compare(0, 7, "TILEMAP") != 0)
 		return false;
-	getline(fin, line);
-	sstream.str(line);
-	sstream >> mapSize.x >> mapSize.y;
+	*/
 	getline(fin, line);
 	sstream.str(line);
 	sstream >> tileSize >> blockSize;
@@ -102,13 +130,17 @@ bool TileMap::loadLevel(const string &levelFile, const string &frontTilesFile)
 	}
 	fin.close();
 
+	return true;
+}
 
-	// Front Tiles
+bool TileMap::loadFrontTiles(const string &frontTilesFile) {
+	ifstream fin;
+	string line, tilesheetFile, frontTilesheetFile;
+	stringstream sstream;
+	char tile;
+
 	fin.open(frontTilesFile.c_str());
 	if (!fin.is_open())
-		return false;
-	getline(fin, line);
-	if (line.compare(0, 12, "FRONTTILEMAP") != 0)
 		return false;
 	getline(fin, line);
 	sstream.str(line);
@@ -125,8 +157,6 @@ bool TileMap::loadLevel(const string &levelFile, const string &frontTilesFile)
 	sstream.str(line);
 	sstream >> frontTilesheetSize.x >> frontTilesheetSize.y;
 	frontTileTexSize = glm::vec2(1.f / frontTilesheetSize.x, 1.f / frontTilesheetSize.y);
-
-	cout << frontTileSize << endl;
 
 	frontMap = new int[mapSize.x * mapSize.y];
 	for (int j = 0; j < mapSize.y; j++)
@@ -145,12 +175,13 @@ bool TileMap::loadLevel(const string &levelFile, const string &frontTilesFile)
 #endif
 	}
 	fin.close();
-
+	
 	return true;
 }
 
-void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
-{
+
+//TODO: refactor separant tiles de front, ajustar be cada Tile (ara esta tot fet com a tiles, si canviem mida front no anira be).
+void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program) {
 	// Tiles
 	int tile, nTiles = 0;
 	glm::vec2 posTile, texCoordTile[2], halfTexel;
@@ -159,13 +190,10 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 	halfTexel = glm::vec2(0.5f / tilesheet.width(), 0.5f / tilesheet.height());
 
 	// Hem d'anar en compte en quin ordre afegim els tiles ja que si solapen l'ultim pintat queda per sobre
-	for (int j = mapSize.y - 1; j >= 0; j--)
-	{
-		for (int i = 0; i < mapSize.x; i++)
-		{
+	for (int j = mapSize.y - 1; j >= 0; j--) {
+		for (int i = 0; i < mapSize.x; i++) {
 			tile = map[j * mapSize.x + i];
-			if (tile != 0)
-			{
+			if (tile != 0) {
 				// Non-empty tile
 				nTiles++;
 				//j - 1 perque les nostres tiles comencen a mig block (en les y). -4 i +4 per donar "efecte 2.5D" una mica
@@ -208,13 +236,10 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 	halfTexel = glm::vec2(0.5f / frontTileSheet.width(), 0.5f / tilesheet.height());
 
 	// Hem d'anar en compte en quin ordre afegim els tiles ja que si solapen l'ultim pintat queda per sobre
-	for (int j = mapSize.y - 1; j >= 0; j--)
-	{
-		for (int i = 0; i < mapSize.x; i++)
-		{
+	for (int j = mapSize.y - 1; j >= 0; j--) {
+		for (int i = 0; i < mapSize.x; i++) {
 			tile = frontMap[j * mapSize.x + i];
-			if (tile != 0)
-			{
+			if (tile != 0) {
 				// Non-empty tile
 				nTiles++;
 				//j - 1 perque les nostres tiles comencen a mig block (en les y). -4 i +4 per donar "efecte 2.5D" una mica
@@ -253,8 +278,7 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 // Collision tests for axis aligned bounding boxes.
 // Position corrected if a collision is detected.
 
-bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, int *posX) const
-{
+bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, int *posX) const {
 	int x, y0, y1;
 
 	x = pos.x / tileSize;
@@ -272,8 +296,7 @@ bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, i
 	return false;
 }
 
-bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, int *posX) const
-{
+bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, int *posX) const {
 	int x, y0, y1;
 
 	x = (pos.x + size.x - 1) / tileSize;
@@ -291,8 +314,7 @@ bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, 
 	return false;
 }
 
-bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const
-{
+bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const {
 	int x0, x1, y;
 
 	x0 = pos.x / tileSize;
@@ -310,8 +332,7 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, i
 	return false;
 }
 
-bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const
-{
+bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const {
 	int x0, x1, y;
 
 	x0 = pos.x / tileSize;

@@ -34,7 +34,7 @@ Scene::~Scene() {
 
 void Scene::init() {
 	initShaders();
-	map = TileMap::createTileMap("levels/lvl.txt", "levels/lvl-front.txt", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	map = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	sceneSize = map->getMapSize()*map->getTileSize();
 	// -4 i +4 per donar "efecte 2.5D" una mica en els tiles, aixi que ho afegim tambe al background per corretgor la posicio.
 	background = Background::createBackground("images/background-prova.png", glm::vec2(SCREEN_X - 4, SCREEN_Y + 4), sceneSize, texProgram);

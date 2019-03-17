@@ -13,7 +13,6 @@ Background *Background::createBackground(const string &backgroundImage, const gl
 	return background;
 }
 
-
 Background::Background(const string &backgroundImage, const glm::vec2 &minCoords, const glm::vec2 &backgroundSize, ShaderProgram &program)
 {
 	background.loadFromFile(backgroundImage, TEXTURE_PIXEL_FORMAT_RGBA);
@@ -24,10 +23,8 @@ Background::Background(const string &backgroundImage, const glm::vec2 &minCoords
 	prepareArrays(minCoords, backgroundSize, program);
 }
 
-
 Background::~Background() {
 }
-
 
 void Background::render() const {
 	glEnable(GL_TEXTURE_2D);

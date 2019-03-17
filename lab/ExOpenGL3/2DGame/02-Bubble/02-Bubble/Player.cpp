@@ -8,7 +8,7 @@
 
 #define JUMP_ANGLE_STEP 4
 #define JUMP_HEIGHT 96
-#define FALL_STEP 10
+#define FALL_STEP 8
 #define MOVEMENT_STEP 3
 #define GRAVITY_STEP 16
 
@@ -118,8 +118,7 @@ void Player::update(int deltaTime) {
 		currentSpriteSheet = 1;
 	}
 	
-	gravityStep += 0.2;
-	if (gravityStep > GRAVITY_STEP) gravityStep = GRAVITY_STEP;
+	if (gravityStep < GRAVITY_STEP) gravityStep += 0.3;
 
 	sprite[currentSpriteSheet]->update(deltaTime);
 	if (Game::instance().getSpecialKey(GLUT_KEY_LEFT)) {

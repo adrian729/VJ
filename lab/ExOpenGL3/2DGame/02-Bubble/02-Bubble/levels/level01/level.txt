@@ -1,0 +1,2 @@
+35 25 -- Size of tile map in tiles
+32 -- Tile size
