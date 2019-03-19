@@ -14,22 +14,32 @@ class Player
 {
 
 public:
+	Player() {}
+	static Player &instance()
+	{
+		static Player P;
+
+		return P;
+	}
+
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
 	void render();
 
 	void setTileMap(TileMap *tileMap);
 	void setPosition(const glm::vec2 &pos);
+	glm::ivec2 getPlayerSize() { return sprite[currentSpriteSheet]->size; }
+
+	bool left;
 
 private:
 	bool jumping;
-	bool left, mv; // direccio mira pj i si s'ha mogut
+	bool mv; // direccio mira pj i si s'ha mogut
 	glm::ivec2 tileMapDispl, posPlayer;
 	int jumpAngle, startY, currentSpriteSheet;
 	int g; // direccio gravetat (1 normal -1 invertida)
 	float gravityStep;
-	glm::ivec2 spriteSize[2]; // tamany dels sprites del sheet
-	glm::ivec2 startColision;
+	glm::ivec2 startColision[2];
 	Texture spritesheet[2];
 	Sprite *sprite[2];
 	TileMap *map;

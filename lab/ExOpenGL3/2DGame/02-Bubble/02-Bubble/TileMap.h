@@ -22,34 +22,65 @@ public:
 	TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program);
 	~TileMap();
 
+	void renderBackground() const;
 	void render() const;
 	void renderFront() const;
+	void renderLights() const;
 	void free();
 
 	int getTileSize() const { return tileSize; }
 	glm::ivec2 getMapSize() const { return mapSize; }
+	glm::ivec2 getSceneSize() const { return tileSize * mapSize; }
+	glm::vec2 getPlayerInitPosition() const { return initPlayerPos; }
 
-	bool collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, int *posX) const;
-	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, int *posX) const;
-	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const;
-	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const;
+	bool collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const;
+	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const;
+	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const;
+	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const;
 
 private:
 	bool loadLevel(const string &levelName);
 	bool loadBackground(const string &backgroundFile);
 	bool loadTiles(const string &tilesFile);
 	bool loadFrontTiles(const string &frontTilesFile);
-	void prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program);
+	bool loadLights(const string &lightsFile);
+	void prepareArrays(ShaderProgram &program);
+	void prepareArraysBackground(ShaderProgram &program);
+	void prepareArraysLights(ShaderProgram &program);
+	void prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const glm::ivec2 &blockSize, const glm::ivec2 &initPos,
+		const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program);
 
 private:
-	GLuint vao, vbo;
+	// Background
+	GLuint vaoBack, vboBack;
+	Texture backgroundImage;
+
+	// TileMap
+	GLuint vaoTileMap, vboTileMap;
+	glm::ivec2 tileBlockSize, initTile, tilesheetSize;
+	Texture tilesheet;
+	glm::vec2 tileTexSize;
+
+	// FrontTiles
 	GLuint vaoFront, vboFront;
+	glm::ivec2 frontBlockSize, initFrontTile, frontTilesheetSize;
+	Texture frontTileSheet;
+	glm::vec2 frontTexSize;
+
+	// Special
+	GLuint vaoSpecial, vboSpecial;
+	int specialTilesheetSize;
+	Texture specialTileSheet;
+
+	// Lights
+	GLuint vaoLights, vboLights;
+	Texture lightsImage;
+
+	// General
 	GLint posLocation, texCoordLocation;
-	glm::ivec2 position, mapSize, tilesheetSize, frontTilesheetSize;
-	int tileSize, blockSize;
-	int frontTileSize, frontBlockSize;
-	Texture tilesheet, frontTileSheet;
-	glm::vec2 tileTexSize, frontTileTexSize;
+	int tileSize;
+	glm::ivec2 mapSize, mapPixels; // size in tiles; size in pixels.
+	glm::vec2 minCoords, initPlayerPos; // map init pos; player init pos (down right tile point)
 	int *map, *frontMap;
 };
 

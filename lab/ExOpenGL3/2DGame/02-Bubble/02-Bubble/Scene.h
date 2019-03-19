@@ -4,7 +4,6 @@
 
 #include <glm/glm.hpp>
 #include "ShaderProgram.h"
-#include "Background.h"
 #include "TileMap.h"
 #include "Player.h"
 
@@ -28,14 +27,16 @@ public:
 	void init();
 	void update(int deltaTime);
 	void render();
+	void Scene::setMap(const int &mapId);
 
 private:
 	void calculateProjectionMatrix();
 	void initShaders();
 
 private:
-	Background *background;
-	TileMap *map, *frontMap;
+	int currentMap;
+	glm::ivec2 initPlayerTiles[1];
+	TileMap *map[1];
 	Player *player;
 	ShaderProgram texProgram;
 	float currentTime;

@@ -40,9 +40,8 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 	//spritesheet[0].loadFromFile("images/HarukoSpritesUp-test.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	//spritesheet[1].loadFromFile("images/HarukoSpritesDown-test.png", TEXTURE_PIXEL_FORMAT_RGBA);
 
-	startColision = glm::ivec2(14, 0);
-
 	for (int k = 0; k < 2; k++) {
+		startColision[k] = glm::ivec2(16, 5);
 		sprite[k] = Sprite::createSprite(glm::ivec2(64, 64), glm::vec2(1.f / xcols, 1.f / ycols), &spritesheet[k], &shaderProgram);
 		sprite[k]->setNumberAnimations(10);
 
@@ -109,6 +108,12 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 
 void Player::update(int deltaTime) {
 
+	glm::vec2 playerSize = sprite[currentSpriteSheet]->size;
+	playerSize.x -= 2*startColision[currentSpriteSheet].x;
+	playerSize.y -= startColision[currentSpriteSheet].y;
+
+	posPlayer.x += startColision[currentSpriteSheet].x;
+	posPlayer.y += g * startColision[currentSpriteSheet].y;
 	if (Game::instance().gravity) {
 		g = 1;
 		currentSpriteSheet = 0;
@@ -147,8 +152,8 @@ void Player::update(int deltaTime) {
 	}
 	// Si s'esta movent, mirem si hi ha colisio esquerra o dreta (per corretgir) i reiniciem mv
 	if (mv) {
-		if (left) map->collisionMoveLeft(posPlayer, sprite[currentSpriteSheet]->size, &posPlayer.x);
-		else map->collisionMoveRight(posPlayer, sprite[currentSpriteSheet]->size, &posPlayer.x);
+		if (left) map->collisionMoveLeft(posPlayer, playerSize, &posPlayer);
+		else map->collisionMoveRight(posPlayer, playerSize, &posPlayer);
 		mv = false;
 	}
 
@@ -172,13 +177,13 @@ void Player::update(int deltaTime) {
 		else  posPlayer.y = int(startY - JUMP_HEIGHT * g * sin(3.14159f * jumpAngle / 180.f));
 		if (jumpAngle <= 90) {
 			if (Game::instance().gravity) {
-				if (map->collisionMoveUp(posPlayer, sprite[currentSpriteSheet]->size, &posPlayer.y)) {
+				if (map->collisionMoveUp(posPlayer, playerSize, &posPlayer)) {
 					jumping = false;
 					gravityStep = 0;
 				}
 			}
 			else {
-				if (map->collisionMoveDown(posPlayer, sprite[currentSpriteSheet]->size, &posPlayer.y)) {
+				if (map->collisionMoveDown(posPlayer, playerSize, &posPlayer)) {
 					jumping = false;
 					gravityStep = 0;
 				}
@@ -192,14 +197,14 @@ void Player::update(int deltaTime) {
 	if (!jumping) posPlayer.y += g * (FALL_STEP + int(gravityStep));
 	// Si esta tocant ground, true.
 	if (Game::instance().gravity) {
-		if (map->collisionMoveDown(posPlayer, sprite[currentSpriteSheet]->size, &posPlayer.y)) {
+		if (map->collisionMoveDown(posPlayer, playerSize, &posPlayer)) {
 			Game::instance().ground = true;
 			jumping = false;
 			gravityStep = 0;
 		}
 	}
 	else {
-		if (map->collisionMoveUp(posPlayer, sprite[currentSpriteSheet]->size, &posPlayer.y)) {
+		if (map->collisionMoveUp(posPlayer, playerSize, &posPlayer)) {
 			Game::instance().ground = true;
 			jumping = false;
 			gravityStep = 0;
@@ -213,6 +218,9 @@ void Player::update(int deltaTime) {
 			sprite[currentSpriteSheet]->changeAnimation(FALL_RIGHT);
 	}
 
+	posPlayer.x -= startColision[currentSpriteSheet].x;
+	posPlayer.y -= g*startColision[currentSpriteSheet].y;
+	
 	sprite[currentSpriteSheet]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 }
 
