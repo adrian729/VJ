@@ -20,7 +20,7 @@ Scene::Scene() {
 
 Scene::~Scene() {
 	if (map != NULL)
-		delete map;
+		delete [] map;
 	if (player != NULL)
 		delete player;
 }
@@ -29,23 +29,32 @@ void Scene::init() {
 	initShaders();
 
 	currentMap = 0;
+	checkpointMap = 0;
 
 	map[0] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	map[1] = TileMap::createTileMap("level02", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 
 	player = new Player();
 	sceneSize = map[currentMap]->getSceneSize();
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
 	player->setPosition(map[currentMap]->getPlayerInitPosition() - glm::vec2(player->getPlayerSize()));
+	player->checkpoint = map[currentMap]->getPlayerInitPosition() - glm::vec2(player->getPlayerSize());
 	player->setTileMap(map[currentMap]);
 	calculateProjectionMatrix();
 	currentTime = 0.0f;
 }
 
-void Scene::setMap(const int &mapId) {
-
-}
-
 void Scene::update(int deltaTime) {
+	if (player->playerState == RESTART) {
+		player->restart();
+		currentMap = checkpointMap;
+		player->playerState = NONE;
+	}
+	else if (player->playerState == CHECKPOINT) {
+		checkpointMap = currentMap;
+		player->checkpoint = player->posPlayer;
+		player->playerState = NONE;
+	}
 	currentTime += deltaTime;
 	player->update(deltaTime);
 }

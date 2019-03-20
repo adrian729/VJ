@@ -11,10 +11,10 @@ using namespace std;
 #define SPIKE 17
 #define CONVEYOR_LEFT 25
 #define CONVEYOR_RIGHT 33
+#define CONTROL_POINT 41
 
-enum PlayerStates {
-	NONE, CHANGING_GRAVITY, DEAD
-};
+#define CONVEYOR_STEP 2
+
 
 TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
 	TileMap *map = new TileMap(levelName, minCoords, program);
@@ -455,6 +455,7 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, g
 	y = (pos.y + size.y - 1) / tileSize;
 
 	bool collisionMade = false;
+	int conveyor_step = 0;
 	for (int x = x0; x <= x1; x++) {
 		if (map[y*mapSize.x + x] != 0) {
 			if (!collisionMade) {
@@ -463,12 +464,21 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, g
 			}
 			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
 				changeState = DEAD;
+				return true;
+			}
+			else if (map[y*mapSize.x + x] == CONVEYOR_LEFT && changeState < DEAD) {
+				conveyor_step = -CONVEYOR_STEP;
+			}
+			else if (map[y*mapSize.x + x] == CONVEYOR_RIGHT && changeState < DEAD) {
+				conveyor_step = CONVEYOR_STEP;
 			}
 		}
 	}
-	if (collisionMade) return true;
+	(*position).x += conveyor_step;
+	if (conveyor_step < 0) collisionMoveLeft(*position, size, position, changeState);
+	else if (conveyor_step > 0) collisionMoveRight(*position, size, position, changeState);
 
-	return false;
+	return collisionMade;
 }
 
 bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const {
@@ -478,6 +488,7 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm
 	y = pos.y / tileSize;
 
 	bool collisionMade = false;
+	int conveyor_step = 0;
 	for (int x = x0; x <= x1; x++) {
 		if (map[y*mapSize.x + x] != 0) {
 			if (!collisionMade) {
@@ -486,10 +497,19 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm
 			}
 			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
 				changeState = DEAD;
+				return true;
+			}
+			else if (map[y*mapSize.x + x] == CONVEYOR_LEFT && changeState < DEAD) {
+				conveyor_step = -CONVEYOR_STEP;
+			}
+			else if (map[y*mapSize.x + x] == CONVEYOR_RIGHT && changeState < DEAD) {
+				conveyor_step = CONVEYOR_STEP;
 			}
 		}
 	}
-	if (collisionMade) return true;
+	(*position).x += conveyor_step;
+	if (conveyor_step < 0) collisionMoveLeft(*position, size, position, changeState);
+	else if (conveyor_step > 0) collisionMoveRight(*position, size, position, changeState);
 
-	return false;
+	return collisionMade;
 }

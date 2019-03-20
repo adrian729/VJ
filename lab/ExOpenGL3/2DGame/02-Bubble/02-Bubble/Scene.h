@@ -6,6 +6,7 @@
 #include "ShaderProgram.h"
 #include "TileMap.h"
 #include "Player.h"
+#include "PlayerState.h"
 
 
 // Scene contains all the entities of our game.
@@ -35,14 +36,15 @@ private:
 
 private:
 	int currentMap;
-	glm::ivec2 initPlayerTiles[1];
-	TileMap *map[1];
+	glm::ivec2 initPlayerTiles[2];
+	TileMap *map[2];
 	Player *player;
 	ShaderProgram texProgram;
 	float currentTime;
 	float V, A;
 	glm::mat4 projection;
 	glm::ivec2 sceneSize;
+	int checkpointMap;
 };
 
 

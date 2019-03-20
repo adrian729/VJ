@@ -19,22 +19,19 @@
 #define JUMP_KFPS 8
 #define FALL_KFPS 6
 #define GRAVITY_KFPS 26
+#define DEATH_KFPS 8
 
 
 enum PlayerAnims {
 	STAND_LEFT, STAND_RIGHT, MOVE_LEFT, MOVE_RIGHT, JUMP_LEFT, JUMP_RIGHT,
-	FALL_LEFT, FALL_RIGHT, GRAVITY_LEFT, GRAVITY_RIGHT
-};
-
-enum PlayerStates {
-	NONE, CHANGING_GRAVITY, DEAD
+	FALL_LEFT, FALL_RIGHT, GRAVITY_LEFT, GRAVITY_RIGHT, DEATH_LEFT, DEATH_RIGHT
 };
 
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 	tileMapDispl = tileMapPos;
 
 	int xcols = 8;
-	int ycols = 6;
+	int ycols = 8;
 
 	spritesheet[0].loadFromFile("images/HarukoSpritesUp.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	spritesheet[1].loadFromFile("images/HarukoSpritesDown.png", TEXTURE_PIXEL_FORMAT_RGBA);
@@ -42,10 +39,9 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 	//spritesheet[1].loadFromFile("images/HarukoSpritesDown-test.png", TEXTURE_PIXEL_FORMAT_RGBA);
 
 	for (int k = 0; k < 2; k++) {
-		startColision[k] = glm::ivec3(12, 5, 22);
-		cout << startColision[k].x << " " << startColision[k].y << " " << startColision[k].p << endl;
+		startColision[k] = glm::ivec3(12, 5, 16);
 		sprite[k] = Sprite::createSprite(glm::ivec2(64, 64), glm::vec2(1.f / xcols, 1.f / ycols), &spritesheet[k], &shaderProgram);
-		sprite[k]->setNumberAnimations(10);
+		sprite[k]->setNumberAnimations(12);
 
 		sprite[k]->setAnimationSpeed(STAND_LEFT, STAND_KFPS);
 		for (int i = 0; i < 4; i++) {
@@ -103,6 +99,16 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 			sprite[k]->addKeyframe(GRAVITY_RIGHT, glm::vec2(float(i) / xcols, 5.f / ycols));
 		}
 
+		sprite[k]->setAnimationSpeed(DEATH_LEFT, DEATH_KFPS);
+		for (int i = 0; i < 8; i++) {
+			sprite[k]->addKeyframe(DEATH_LEFT, glm::vec2(float(i) / xcols, 6.f / ycols));
+		}
+
+		sprite[k]->setAnimationSpeed(DEATH_RIGHT, DEATH_KFPS);
+		for (int i = 0; i < 8; i++) {
+			sprite[k]->addKeyframe(DEATH_RIGHT, glm::vec2(float(i) / xcols, 7.f / ycols));
+		}
+
 		sprite[k]->changeAnimation(0);
 		sprite[k]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 	}
@@ -110,14 +116,9 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 }
 
 void Player::resetVariables() {
-	if (Game::instance().gravity) {
-		g = 1;
-		currentSpriteSheet = 0;
-	}
-	else {
-		g = -1;
-		currentSpriteSheet = 1;
-	}
+	Game::instance().gravity = true;
+	g = 1;
+	currentSpriteSheet = 0;
 	gravityStep = 0;
 	jumping = false;
 	left = true;
@@ -127,9 +128,40 @@ void Player::resetVariables() {
 	playerState = NONE;
 }
 
+void Player::restart() {
+	resetVariables();
+	setPosition(checkpoint);
+}
+
 void Player::update(int deltaTime) {
 
 	sprite[currentSpriteSheet]->update(deltaTime);
+
+	// Death
+	if (playerState == DEAD) {
+		if (left && sprite[currentSpriteSheet]->animation() != DEATH_LEFT)
+			sprite[currentSpriteSheet]->changeAnimation(DEATH_LEFT);
+		else if (!left && sprite[currentSpriteSheet]->animation() != DEATH_RIGHT)
+			sprite[currentSpriteSheet]->changeAnimation(DEATH_RIGHT);
+
+		animationTimer++;
+		// frames animation * fps update / keyframes ps animation
+		if (animationTimer > 8 * FPS / DEATH_KFPS) {
+			playerState = RESTART;
+		}
+
+		sprite[currentSpriteSheet]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+		return;
+	}
+
+	if (playerState == CHANGE_GRAVITY) {
+		Game::instance().gravity = !Game::instance().gravity;
+		playerState = NONE;
+	}
+	else if (playerState == CHECKPOINT) {
+		checkpoint = posPlayer;
+		playerState = NONE;
+	}
 
 	if (Game::instance().gravity) {
 		if (g != 1) {
@@ -156,24 +188,6 @@ void Player::update(int deltaTime) {
 
 	posPlayer.y += g * startColision[currentSpriteSheet].y;
 
-	// Death
-	if (playerState == DEAD) {
-		posPlayer.y -= g * startColision[currentSpriteSheet].y;
-		if (left && sprite[currentSpriteSheet]->animation() != GRAVITY_LEFT)
-			sprite[currentSpriteSheet]->changeAnimation(GRAVITY_LEFT);
-		else if (!left && sprite[currentSpriteSheet]->animation() != GRAVITY_RIGHT)
-			sprite[currentSpriteSheet]->changeAnimation(GRAVITY_RIGHT);
-
-		animationTimer++;
-		// frames animation * fps update / keyframes ps animation
-		if (animationTimer > 4 * FPS / GRAVITY_KFPS) {
-			playerState = NONE;
-		}
-
-		sprite[currentSpriteSheet]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
-		return;
-	}
-
 	// Changing gravity
 	if (playerState == CHANGING_GRAVITY) {
 		posPlayer.y -= g * startColision[currentSpriteSheet].y;
@@ -186,6 +200,7 @@ void Player::update(int deltaTime) {
 		// frames animation * fps update / keyframes ps animation
 		if (animationTimer > 4 * FPS / GRAVITY_KFPS) {
 			playerState = NONE;
+			animationTimer = 0;
 		}
 
 		sprite[currentSpriteSheet]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));

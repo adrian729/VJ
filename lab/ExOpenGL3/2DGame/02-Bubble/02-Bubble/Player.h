@@ -4,6 +4,7 @@
 
 #include "Sprite.h"
 #include "TileMap.h"
+#include "PlayerState.h"
 
 
 // Player is basically a Sprite that represents the player. As such it has
@@ -29,15 +30,18 @@ public:
 	void setPosition(const glm::vec2 &pos);
 	glm::ivec2 getPlayerSize() { return sprite[currentSpriteSheet]->size; }
 
+	void restart();
+
 	bool left;
 
 	int animationTimer;
 	int playerState;
+	glm::ivec2 posPlayer, checkpoint;
 
 private:
 	bool jumping;
 	bool mv; // direccio mira pj i si s'ha mogut
-	glm::ivec2 tileMapDispl, posPlayer;
+	glm::ivec2 tileMapDispl;
 	int jumpAngle, startY, currentSpriteSheet;
 	int g; // direccio gravetat (1 normal -1 invertida)
 	float gravityStep;

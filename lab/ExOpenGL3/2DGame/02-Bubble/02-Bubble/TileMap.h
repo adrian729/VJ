@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include "Texture.h"
 #include "ShaderProgram.h"
+#include "PlayerState.h"
 
 
 // Class Tilemap is capable of loading a tile map from a text file in a very
@@ -49,6 +50,7 @@ private:
 	void prepareArraysLights(ShaderProgram &program);
 	void prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const glm::ivec2 &blockSize, const glm::ivec2 &initPos,
 		const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program);
+	void TileMap::changeState(const int &tile, int &state);
 
 private:
 	// Background
