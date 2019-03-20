@@ -29,10 +29,11 @@ void Scene::init() {
 	initShaders();
 
 	currentMap = 0;
+
 	map[0] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 
-	sceneSize = map[currentMap]->getSceneSize();
 	player = new Player();
+	sceneSize = map[currentMap]->getSceneSize();
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
 	player->setPosition(map[currentMap]->getPlayerInitPosition() - glm::vec2(player->getPlayerSize()));
 	player->setTileMap(map[currentMap]);

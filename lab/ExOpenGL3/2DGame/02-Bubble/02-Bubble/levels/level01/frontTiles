@@ -1,6 +1,6 @@
 32 32 -- Block size
 0 0 -- Initial Tile position
-images/frontTileSheet-test.png -- Tilesheet
+images/frontTileSheet.png -- Tilesheet
 8 8	-- Number of tiles in tilesheet
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

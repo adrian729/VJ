@@ -3,11 +3,18 @@
 #include <sstream>
 #include <vector>
 #include "TileMap.h"
-#include "Player.h"
 
 
 using namespace std;
 
+
+#define SPIKE 17
+#define CONVEYOR_LEFT 25
+#define CONVEYOR_RIGHT 33
+
+enum PlayerStates {
+	NONE, CHANGING_GRAVITY, DEAD
+};
 
 TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
 	TileMap *map = new TileMap(levelName, minCoords, program);
@@ -169,7 +176,6 @@ bool TileMap::loadTiles(const string &tilesFile) {
 	getline(fin, line);
 	sstream.str(line);
 	sstream >> tilesheetFile;
-	cout << tilesheetFile << endl;
 	tilesheet.loadFromFile(tilesheetFile, TEXTURE_PIXEL_FORMAT_RGBA);
 	tilesheet.setWrapS(GL_CLAMP_TO_EDGE);
 	tilesheet.setWrapT(GL_CLAMP_TO_EDGE);
@@ -190,7 +196,6 @@ bool TileMap::loadTiles(const string &tilesFile) {
 				fin.get(tile);
 			}
 			map[j*mapSize.x + i] = stoi(tileID);
-			cout << "t " << map[j*mapSize.x + i] << endl;
 		}
 		fin.get(tile);
 #ifndef _WIN32
@@ -225,7 +230,6 @@ bool TileMap::loadFrontTiles(const string &frontTilesFile) {
 	getline(fin, line);
 	sstream.str(line);
 	sstream >> frontTilesheetFile;
-	cout << frontTilesheetFile << endl;
 	frontTileSheet.loadFromFile(frontTilesheetFile, TEXTURE_PIXEL_FORMAT_RGBA);
 	frontTileSheet.setWrapS(GL_CLAMP_TO_EDGE);
 	frontTileSheet.setWrapT(GL_CLAMP_TO_EDGE);
@@ -246,7 +250,6 @@ bool TileMap::loadFrontTiles(const string &frontTilesFile) {
 				fin.get(tile);
 			}
 			frontMap[j*mapSize.x + i] = stoi(tileID);
-			cout << "t " << frontMap[j*mapSize.x + i] << endl;
 		}
 		fin.get(tile);
 #ifndef _WIN32
@@ -365,7 +368,7 @@ void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const g
 				// Non-empty tile
 				nTiles++;
 				posTile = glm::vec2(minCoords.x + i * tileSize - initPos.x, minCoords.y + j * tileSize - initPos.y);
-				texCoordTile[0] = glm::vec2(float((tile - 1) % 2) / sheetSize.x, float((tile - 1) / 2) / sheetSize.y);
+				texCoordTile[0] = glm::vec2(float((tile - 1) % sheetSize.x) / sheetSize.x, float((tile - 1) / sheetSize.y) / sheetSize.y);
 				texCoordTile[1] = texCoordTile[0] + texSize;
 				//texCoordTile[0] += halfTexel;
 				texCoordTile[1] -= halfTexel;
@@ -399,74 +402,94 @@ void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const g
 // Collision tests for axis aligned bounding boxes.
 // Position corrected if a collision is detected.
 
-bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const {
+bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const {
 	int x, y0, y1;
-
 	x = pos.x / tileSize;
 	y0 = pos.y / tileSize;
 	y1 = (pos.y + size.y - 1) / tileSize;
-	for (int y = y0; y <= y1; y++)
-	{
-		if (map[y*mapSize.x + x] != 0)
-		{
-			(*position).x = (x + 1)*tileSize;
-			return true;
+
+	bool collisionMade = false;
+	for (int y = y0; y <= y1; y++) {
+		if (map[y*mapSize.x + x] != 0) {
+			if (!collisionMade) {
+				(*position).x = (x + 1)*tileSize;
+				collisionMade = true;
+			}
+			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+				changeState = DEAD;
+			}
 		}
 	}
+	if (collisionMade) return true;
 
 	return false;
 }
 
-bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const {
+bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const {
 	int x, y0, y1;
-
 	x = (pos.x + size.x - 1) / tileSize;
 	y0 = pos.y / tileSize;
 	y1 = (pos.y + size.y - 1) / tileSize;
-	for (int y = y0; y <= y1; y++)
-	{
-		if (map[y*mapSize.x + x] != 0)
-		{
-			(*position).x = x * tileSize - size.x;
-			return true;
+
+	bool collisionMade = false;
+	for (int y = y0; y <= y1; y++) {
+		if (map[y*mapSize.x + x] != 0) {
+			if (!collisionMade) {
+				(*position).x = x * tileSize - size.x;
+				collisionMade = true;
+			}
+			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+				changeState = DEAD;
+			}
 		}
 	}
+	if (collisionMade) return true;
 
 	return false;
 }
 
-bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const {
+bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const {
 	int x0, x1, y;
-
 	x0 = pos.x / tileSize;
 	x1 = (pos.x + size.x - 1) / tileSize;
 	y = (pos.y + size.y - 1) / tileSize;
-	for (int x = x0; x <= x1; x++)
-	{
-		if (map[y*mapSize.x + x] != 0)
-		{
-			(*position).y = tileSize * y - size.y;
-			return true;
+
+	bool collisionMade = false;
+	for (int x = x0; x <= x1; x++) {
+		if (map[y*mapSize.x + x] != 0) {
+			if (!collisionMade) {
+				(*position).y = tileSize * y - size.y;
+				collisionMade = true;
+			}
+			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+				changeState = DEAD;
+			}
 		}
 	}
+	if (collisionMade) return true;
 
 	return false;
 }
 
-bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position) const {
+bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const {
 	int x0, x1, y;
-
 	x0 = pos.x / tileSize;
 	x1 = (pos.x + size.x - 1) / tileSize;
 	y = pos.y / tileSize;
-	for (int x = x0; x <= x1; x++)
-	{
-		if (map[y*mapSize.x + x] != 0)
-		{
-			(*position).y = tileSize * (y + 1);
-			return true;
+
+	bool collisionMade = false;
+	for (int x = x0; x <= x1; x++) {
+		if (map[y*mapSize.x + x] != 0) {
+			if (!collisionMade) {
+				(*position).y = tileSize * (y + 1);
+				collisionMade = true;
+			}
+			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+				changeState = DEAD;
+			}
 		}
 	}
+	if (collisionMade) return true;
 
 	return false;
 }
