@@ -133,6 +133,12 @@ void Player::restart() {
 	setPosition(checkpoint);
 }
 
+void Player::changeMap(const glm::vec2 &newPosition) {
+	resetVariables();
+	cout << "point " << newPosition.x << " " << newPosition.y << endl;
+	setPosition(newPosition);
+}
+
 void Player::update(int deltaTime) {
 
 	sprite[currentSpriteSheet]->update(deltaTime);
@@ -207,7 +213,7 @@ void Player::update(int deltaTime) {
 		return;
 	}
 
-	if (gravityStep < GRAVITY_STEP) gravityStep += 0.3;
+	if (gravityStep < GRAVITY_STEP) gravityStep += 0.3f;
 
 	if (Game::instance().getSpecialKey(GLUT_KEY_LEFT)) {
 		mv = true;

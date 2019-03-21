@@ -22,7 +22,7 @@ public:
 	}
 
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
-	void Player::resetVariables();
+	void resetVariables();
 	void update(int deltaTime);
 	void render();
 
@@ -31,6 +31,7 @@ public:
 	glm::ivec2 getPlayerSize() { return sprite[currentSpriteSheet]->size; }
 
 	void restart();
+	void changeMap(const glm::vec2 &newPosition);
 
 	bool left;
 

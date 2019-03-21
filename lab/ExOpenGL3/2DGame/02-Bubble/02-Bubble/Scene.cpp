@@ -12,7 +12,7 @@
 
 
 Scene::Scene() {
-	for (int i = 0; i < sizeof(map); i++) {
+	for (int i = 0; i < sizeof(map)/sizeof(int); i++) {
 		map[i] = NULL;
 	}
 	player = NULL;
@@ -20,7 +20,7 @@ Scene::Scene() {
 
 Scene::~Scene() {
 	if (map != NULL)
-		delete [] map;
+		delete[] map;
 	if (player != NULL)
 		delete player;
 }
@@ -48,6 +48,7 @@ void Scene::update(int deltaTime) {
 	if (player->playerState == RESTART) {
 		player->restart();
 		currentMap = checkpointMap;
+		player->setTileMap(map[currentMap]);
 		player->playerState = NONE;
 	}
 	else if (player->playerState == CHECKPOINT) {
@@ -55,6 +56,17 @@ void Scene::update(int deltaTime) {
 		player->checkpoint = player->posPlayer;
 		player->playerState = NONE;
 	}
+	else if (player->playerState == CHANGE_MAP) {
+		int changeMapId = map[currentMap]->changeMapId;
+		cout << "CID " << changeMapId << endl;
+		glm::ivec3 newMapInfo = map[currentMap]->changeMapInfo[changeMapId];
+		player->changeMap(glm::vec2(newMapInfo.y, newMapInfo.z) - glm::vec2(player->getPlayerSize()));
+		currentMap = newMapInfo.x;
+		player->setTileMap(map[currentMap]);
+		cout << "cmap " << currentMap << endl;
+		player->playerState = NONE;
+	}
+	cout << "NANI " << player->playerState << endl;
 	currentTime += deltaTime;
 	player->update(deltaTime);
 }
@@ -74,7 +86,7 @@ void Scene::render() {
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map[currentMap]->renderFront();
-	//map[currentMap]->renderLights();
+	map[currentMap]->renderLights();
 }
 
 void Scene::calculateProjectionMatrix() {
@@ -108,7 +120,7 @@ void Scene::initShaders() {
 	texProgram.addShader(vShader);
 	texProgram.addShader(fShader);
 	texProgram.link();
-	if (!texProgram.isLinked())	{
+	if (!texProgram.isLinked()) {
 		cout << "Shader Linking Error" << endl;
 		cout << "" << texProgram.log() << endl << endl;
 	}

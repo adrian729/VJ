@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include "ShaderProgram.h"
 #include "PlayerState.h"
+#include <vector>
 
 
 // Class Tilemap is capable of loading a tile map from a text file in a very
@@ -34,10 +35,13 @@ public:
 	glm::ivec2 getSceneSize() const { return tileSize * mapSize; }
 	glm::vec2 getPlayerInitPosition() const { return initPlayerPos; }
 
-	bool collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const;
-	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const;
-	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const;
-	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) const;
+	bool collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
+	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
+	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
+	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
+	
+	vector<glm::ivec3> changeMapInfo; // mapID, tile X, tile Y
+	int changeMapId;
 
 private:
 	bool loadLevel(const string &levelName);
