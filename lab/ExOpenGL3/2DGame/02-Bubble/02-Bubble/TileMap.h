@@ -23,7 +23,8 @@ public:
 
 	TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program);
 	~TileMap();
-
+	
+	void update(int deltaTime, ShaderProgram &program);
 	void renderBackground() const;
 	void render() const;
 	void renderFront() const;
@@ -40,8 +41,10 @@ public:
 	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
 	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
 	
+	int animationCount;
+	int changeMapInfoId;
 	vector<glm::ivec3> changeMapInfo; // mapID, tile X, tile Y
-	int changeMapId;
+	glm::ivec2 activatedCheckpoint;
 
 private:
 	bool loadLevel(const string &levelName);
@@ -88,6 +91,7 @@ private:
 	glm::ivec2 mapSize, mapPixels; // size in tiles; size in pixels.
 	glm::vec2 minCoords, initPlayerPos; // map init pos; player init pos (down right tile point)
 	int *map, *frontMap;
+	int *mapType; // type of the maptile
 };
 
 

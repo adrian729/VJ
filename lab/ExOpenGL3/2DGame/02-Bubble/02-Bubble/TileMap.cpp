@@ -11,8 +11,9 @@ using namespace std;
 #define CONVEYOR_LEFT 25
 #define CONVEYOR_RIGHT 33
 #define CONTROL_POINT 41
+#define ACTIVATED_CONTROL_POINT 49
 
-#define CONVEYOR_STEP 2
+#define CONVEYOR_STEP 3
 
 
 TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
@@ -21,7 +22,10 @@ TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoo
 }
 
 TileMap::TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
-	changeMapId = 1;
+	changeMapInfo.push_back(glm::ivec3(1, 33, 23));
+	changeMapInfoId = changeMapInfo.size();
+
+	animationCount = 0;
 
 	this->minCoords = minCoords;
 	// -4 i +4 per donar "efecte 2.5D" una mica
@@ -36,6 +40,38 @@ TileMap::~TileMap() {
 		delete map;
 	if (frontMap != NULL)
 		delete frontMap;
+}
+
+void TileMap::update(int deltaTime, ShaderProgram &program) {
+	animationCount++;
+	if (animationCount > 60 / 6) {
+		animationCount = 0;
+		int tile;
+		for (int j = mapSize.y - 1; j >= 0; j--) {
+			for (int i = 0; i < mapSize.x; i++) {
+				int type = mapType[j * mapSize.x + i];
+				if (type > 0 && type < 100) {
+					if (type == CONTROL_POINT) {
+						if (i == activatedCheckpoint.x && j == activatedCheckpoint.y) {
+							type = ACTIVATED_CONTROL_POINT;
+							mapType[j * mapSize.x + i] = ACTIVATED_CONTROL_POINT;
+						}
+					}
+					else if (type == ACTIVATED_CONTROL_POINT) {
+						if (i != activatedCheckpoint.x || j != activatedCheckpoint.y) {
+							type = CONTROL_POINT;
+							mapType[j * mapSize.x + i] = CONTROL_POINT;
+						}
+					}
+					// tileMap
+					map[j * mapSize.x + i] = type + (map[j * mapSize.x + i] - type + 1) % 8;
+					// frontMap
+					frontMap[j * mapSize.x + i] = type + (map[j * mapSize.x + i] - type + 1) % 8;
+				}
+			}
+		}
+		prepareArrays(program);
+	}
 }
 
 void TileMap::renderBackground() const {
@@ -115,6 +151,7 @@ bool TileMap::loadLevel(const string &levelName) {
 	initPlayerPos *= tileSize;
 
 	bool breturn = true;
+	cout << "level: " << levelName << endl;
 	breturn = breturn && loadBackground("levels/" + levelName + "/background");
 	cout << "bck: " << breturn << endl;
 	breturn = breturn && loadTiles("levels/" + levelName + "/tileMap");
@@ -157,7 +194,7 @@ bool TileMap::loadTiles(const string &tilesFile) {
 	// A partir de la tile 16 son tiles "especials".
 	// 17 - 24 spikes
 	// 25 - 32 cinta left
-	// 33 - 41 cinta right
+	// 33 - 40 cinta right
 
 	// Tiles
 	fin.open(tilesFile.c_str());
@@ -188,6 +225,8 @@ bool TileMap::loadTiles(const string &tilesFile) {
 	tileTexSize = glm::vec2(1.f / tilesheetSize.x, 1.f / tilesheetSize.y);
 
 	map = new int[mapSize.x * mapSize.y];
+	mapType = new int[mapSize.x * mapSize.y];
+
 	string tmp;
 	glm::ivec3 changeTileInfo;
 	for (int j = 0; j < mapSize.y; j++) {
@@ -230,17 +269,21 @@ bool TileMap::loadTiles(const string &tilesFile) {
 					fin.get(tile);
 				}
 			}
-			map[j*mapSize.x + i] = stoi(tileID);
+			int id = stoi(tileID);
+			map[j*mapSize.x + i] = id;
+			if (id > 100) mapType[j*mapSize.x + i] = 100;
+			if (id > 16) mapType[j*mapSize.x + i] = (id / 8) * 8 + 1;
+			else mapType[j*mapSize.x + i] = 0;
 		}
 		fin.get(tile);
 #ifndef _WIN32
 		fin.get(tile);
 #endif
-	}
+		}
 	fin.close();
 
 	return true;
-}
+	}
 
 bool TileMap::loadFrontTiles(const string &frontTilesFile) {
 	ifstream fin;
@@ -290,11 +333,11 @@ bool TileMap::loadFrontTiles(const string &frontTilesFile) {
 #ifndef _WIN32
 		fin.get(tile);
 #endif
-	}
+		}
 	fin.close();
 
 	return true;
-}
+	}
 
 bool TileMap::loadLights(const string &lightsFile) {
 	ifstream fin;
@@ -399,7 +442,7 @@ void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const g
 	for (int j = mapSize.y - 1; j >= 0; j--) {
 		for (int i = 0; i < mapSize.x; i++) {
 			tile = tileMap[j * mapSize.x + i];
-			if (tile != 0) {
+			if (tile != 0 && tile < 100) {
 				// Non-empty tile
 				nTiles++;
 				posTile = glm::vec2(minCoords.x + i * tileSize - initPos.x, minCoords.y + j * tileSize - initPos.y);
@@ -444,25 +487,30 @@ bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, g
 	y1 = (pos.y + size.y - 1) / tileSize;
 
 	bool collisionMade = false;
+	glm::ivec2 check = glm::ivec2(-1, -1);
 	for (int y = y0; y <= y1; y++) {
 		if (map[y*mapSize.x + x] != 0) {
-			if (!collisionMade) {
+			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				(*position).x = (x + 1)*tileSize;
 				collisionMade = true;
 			}
-			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+			if (mapType[y*mapSize.x + x] == SPIKE) {
 				changeState = DEAD;
 			}
-			else if (map[y*mapSize.x + x] > 100 && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONTROL_POINT) {
+				changeState = CHECKPOINT;
+				check = glm::ivec2(x, y);
+			}
+			else if (mapType[y*mapSize.x + x] >= 100 && changeState < DEAD) {
 				changeState = CHANGE_MAP;
-				changeMapId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - 100;
 				return true;
 			}
 		}
 	}
-	if (collisionMade) return true;
+	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 
-	return false;
+	return collisionMade;
 }
 
 bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) {
@@ -472,25 +520,30 @@ bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, 
 	y1 = (pos.y + size.y - 1) / tileSize;
 
 	bool collisionMade = false;
+	glm::ivec2 check = glm::ivec2(-1, -1);
 	for (int y = y0; y <= y1; y++) {
 		if (map[y*mapSize.x + x] != 0) {
-			if (!collisionMade) {
+			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				(*position).x = x * tileSize - size.x;
 				collisionMade = true;
 			}
-			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+			if (mapType[y*mapSize.x + x] == SPIKE) {
 				changeState = DEAD;
 			}
-			else if (map[y*mapSize.x + x] > 100 && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONTROL_POINT) {
+				changeState = CHECKPOINT;
+				check = glm::ivec2(x, y);
+			}
+			else if (mapType[y*mapSize.x + x] >= 100 && changeState < DEAD) {
 				changeState = CHANGE_MAP;
-				changeMapId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - 100;
 				return true;
 			}
 		}
 	}
-	if (collisionMade) return true;
+	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 
-	return false;
+	return collisionMade;
 }
 
 bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState) {
@@ -501,30 +554,36 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, g
 
 	bool collisionMade = false;
 	int conveyor_step = 0;
+	glm::ivec2 check = glm::ivec2(-1, -1);
 	for (int x = x0; x <= x1; x++) {
 		if (map[y*mapSize.x + x] != 0) {
-			if (!collisionMade) {
+			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				(*position).y = tileSize * y - size.y;
 				collisionMade = true;
 			}
-			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+			if (mapType[y*mapSize.x + x] == SPIKE) {
 				changeState = DEAD;
 				return true;
 			}
-			else if (map[y*mapSize.x + x] == CONVEYOR_LEFT && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONVEYOR_LEFT) {
 				conveyor_step = -CONVEYOR_STEP;
 			}
-			else if (map[y*mapSize.x + x] == CONVEYOR_RIGHT && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONVEYOR_RIGHT) {
 				conveyor_step = CONVEYOR_STEP;
 			}
-			else if (map[y*mapSize.x + x] > 100 && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONTROL_POINT) {
+				changeState = CHECKPOINT;
+				check = glm::ivec2(x, y);
+			}
+			else if (mapType[y*mapSize.x + x] >= 100) {
 				changeState = CHANGE_MAP;
-				changeMapId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - 100;
 				return true;
 			}
 		}
 	}
 	(*position).x += conveyor_step;
+	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 	if (conveyor_step < 0) collisionMoveLeft(*position, size, position, changeState);
 	else if (conveyor_step > 0) collisionMoveRight(*position, size, position, changeState);
 
@@ -539,30 +598,36 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm
 
 	bool collisionMade = false;
 	int conveyor_step = 0;
+	glm::ivec2 check = glm::ivec2(-1, -1);
 	for (int x = x0; x <= x1; x++) {
 		if (map[y*mapSize.x + x] != 0) {
-			if (!collisionMade) {
+			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				(*position).y = tileSize * (y + 1);
 				collisionMade = true;
 			}
-			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
+			if (mapType[y*mapSize.x + x] == SPIKE) {
 				changeState = DEAD;
 				return true;
 			}
-			else if (map[y*mapSize.x + x] == CONVEYOR_LEFT && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONVEYOR_LEFT) {
 				conveyor_step = -CONVEYOR_STEP;
 			}
-			else if (map[y*mapSize.x + x] == CONVEYOR_RIGHT && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONVEYOR_RIGHT) {
 				conveyor_step = CONVEYOR_STEP;
 			}
-			else if (map[y*mapSize.x + x] >= 100 && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] == CONTROL_POINT) {
+				changeState = CHECKPOINT;
+				check = glm::ivec2(x, y);
+			}
+			else if (mapType[y*mapSize.x + x] >= 100) {
 				changeState = CHANGE_MAP;
-				changeMapId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - 100;
 				return true;
 			}
 		}
 	}
 	(*position).x += conveyor_step;
+	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 	if (conveyor_step < 0) collisionMoveLeft(*position, size, position, changeState);
 	else if (conveyor_step > 0) collisionMoveRight(*position, size, position, changeState);
 

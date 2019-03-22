@@ -6,16 +6,16 @@
 #include "Game.h"
 
 
-#define JUMP_ANGLE_STEP 4
+#define JUMP_ANGLE_STEP 5
 #define JUMP_HEIGHT 96
-#define FALL_STEP 8
-#define MOVEMENT_STEP 3
-#define GRAVITY_STEP 16
+#define FALL_STEP 10
+#define MOVEMENT_STEP 4
+#define GRAVITY_STEP 20
 
 
 #define FPS 60
 #define STAND_KFPS 6
-#define MOVE_KFPS 16
+#define MOVE_KFPS 18
 #define JUMP_KFPS 8
 #define FALL_KFPS 6
 #define GRAVITY_KFPS 26
@@ -39,7 +39,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 	//spritesheet[1].loadFromFile("images/HarukoSpritesDown-test.png", TEXTURE_PIXEL_FORMAT_RGBA);
 
 	for (int k = 0; k < 2; k++) {
-		startColision[k] = glm::ivec3(12, 5, 16);
+		startColision[k] = glm::ivec3(15, 5, 16);
 		sprite[k] = Sprite::createSprite(glm::ivec2(64, 64), glm::vec2(1.f / xcols, 1.f / ycols), &spritesheet[k], &shaderProgram);
 		sprite[k]->setNumberAnimations(12);
 
@@ -134,7 +134,7 @@ void Player::restart() {
 }
 
 void Player::changeMap(const glm::vec2 &newPosition) {
-	resetVariables();
+	// resetVariables();
 	cout << "point " << newPosition.x << " " << newPosition.y << endl;
 	setPosition(newPosition);
 }
@@ -164,10 +164,6 @@ void Player::update(int deltaTime) {
 		Game::instance().gravity = !Game::instance().gravity;
 		playerState = NONE;
 	}
-	else if (playerState == CHECKPOINT) {
-		checkpoint = posPlayer;
-		playerState = NONE;
-	}
 
 	if (Game::instance().gravity) {
 		if (g != 1) {
@@ -192,11 +188,11 @@ void Player::update(int deltaTime) {
 	playerSize.x -= (startColision[currentSpriteSheet].x + startColision[currentSpriteSheet].p);
 	playerSize.y -= startColision[currentSpriteSheet].y;
 
-	posPlayer.y += g * startColision[currentSpriteSheet].y;
+	if (g == 1) posPlayer.y += startColision[currentSpriteSheet].y;
 
 	// Changing gravity
 	if (playerState == CHANGING_GRAVITY) {
-		posPlayer.y -= g * startColision[currentSpriteSheet].y;
+		if (g == 1) posPlayer.y -= g * startColision[currentSpriteSheet].y;
 		if (left && sprite[currentSpriteSheet]->animation() != GRAVITY_LEFT)
 			sprite[currentSpriteSheet]->changeAnimation(GRAVITY_LEFT);
 		else if (!left && sprite[currentSpriteSheet]->animation() != GRAVITY_RIGHT)
@@ -313,7 +309,7 @@ void Player::update(int deltaTime) {
 	if (left) posPlayer.x -= startColision[currentSpriteSheet].x;
 	else posPlayer.x -= startColision[currentSpriteSheet].p;
 
-	posPlayer.y -= g * startColision[currentSpriteSheet].y;
+	if (g == 1)posPlayer.y -= startColision[currentSpriteSheet].y;
 
 	sprite[currentSpriteSheet]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 }

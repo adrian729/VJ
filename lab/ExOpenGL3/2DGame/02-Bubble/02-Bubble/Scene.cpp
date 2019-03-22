@@ -59,7 +59,8 @@ void Scene::update(int deltaTime) {
 		}
 	}
 	else if (player->playerState == RESTART) {
-		if (!changeMap) {
+		int newMap = checkpointMap;
+		if (!changeMap && currentMap != 0 && newMap != currentMap) {
 			changeMap = true;
 		}
 		else {
@@ -71,28 +72,32 @@ void Scene::update(int deltaTime) {
 			player->playerState = NONE;
 		}
 	}
-	else if (player->playerState == CHECKPOINT) {
-		checkpointMap = currentMap;
-		player->checkpoint = player->posPlayer;
-		player->playerState = NONE;
-	}
 	else if (player->playerState == CHANGE_MAP) {
-		if (!changeMap) {
+		int newMap = map[currentMap]->changeMapInfo[map[currentMap]->changeMapInfoId].r;
+		if (!changeMap && currentMap != 0 && newMap != currentMap) {
 			changeMap = true;
 		}
 		else {
 			changeMap = false;
 			timer = 0;
-			int changeMapId = map[currentMap]->changeMapId;
-			glm::ivec3 newMapInfo = map[currentMap]->changeMapInfo[changeMapId];
+			int changeMapInfoId = map[currentMap]->changeMapInfoId;
+			glm::ivec3 newMapInfo = map[currentMap]->changeMapInfo[changeMapInfoId];
 			player->changeMap(glm::vec2(newMapInfo.y, newMapInfo.z) - glm::vec2(player->getPlayerSize()));
 			currentMap = newMapInfo.x;
 			player->setTileMap(map[currentMap]);
 			player->playerState = NONE;
 		}
 	}
+	else if (player->playerState == CHECKPOINT) {
+		if(currentMap != checkpointMap) map[checkpointMap]->activatedCheckpoint = glm::ivec2(-1, -1);
+		checkpointMap = currentMap;
+		player->checkpoint = player->posPlayer;
+		player->playerState = NONE;
+	}
+
 	currentTime += deltaTime;
 	player->update(deltaTime);
+	map[currentMap]->update(deltaTime, texProgram);
 }
 
 void Scene::render() {
