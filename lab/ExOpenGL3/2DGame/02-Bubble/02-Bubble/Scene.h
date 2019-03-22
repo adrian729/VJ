@@ -28,7 +28,9 @@ public:
 	void init();
 	void update(int deltaTime);
 	void render();
-	void Scene::setMap(const int &mapId);
+
+	bool changeMap;
+	int timer;
 
 private:
 	void calculateProjectionMatrix();
@@ -36,8 +38,8 @@ private:
 
 private:
 	int currentMap;
-	glm::ivec2 initPlayerTiles[2];
-	TileMap *map[2];
+	int transitionMap;
+	TileMap *map[3];
 	Player *player;
 	ShaderProgram texProgram;
 	float currentTime;

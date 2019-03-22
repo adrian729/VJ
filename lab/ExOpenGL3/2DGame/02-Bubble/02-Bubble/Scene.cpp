@@ -12,7 +12,7 @@
 
 
 Scene::Scene() {
-	for (int i = 0; i < sizeof(map)/sizeof(int); i++) {
+	for (int i = 0; i < sizeof(map) / sizeof(int); i++) {
 		map[i] = NULL;
 	}
 	player = NULL;
@@ -28,11 +28,12 @@ Scene::~Scene() {
 void Scene::init() {
 	initShaders();
 
-	currentMap = 0;
-	checkpointMap = 0;
+	currentMap = 1;
+	checkpointMap = 1;
 
-	map[0] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
-	map[1] = TileMap::createTileMap("level02", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	map[0] = TileMap::createTileMap("level00", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	map[1] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	map[2] = TileMap::createTileMap("level02", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 
 	player = new Player();
 	sceneSize = map[currentMap]->getSceneSize();
@@ -45,11 +46,30 @@ void Scene::init() {
 }
 
 void Scene::update(int deltaTime) {
-	if (player->playerState == RESTART) {
-		player->restart();
-		currentMap = checkpointMap;
-		player->setTileMap(map[currentMap]);
-		player->playerState = NONE;
+	if (changeMap && timer < 30) {
+		timer++;
+		if (timer == 1) {
+			// Mapa "transicio"
+			transitionMap = currentMap; // guardem a quin mapa estavem
+			currentMap = 0; // mapa "transicio"
+		}
+		else if (timer >= 30) {
+			currentMap = transitionMap;
+			transitionMap = 0;
+		}
+	}
+	else if (player->playerState == RESTART) {
+		if (!changeMap) {
+			changeMap = true;
+		}
+		else {
+			changeMap = false;
+			timer = 0;
+			player->restart();
+			currentMap = checkpointMap;
+			player->setTileMap(map[currentMap]);
+			player->playerState = NONE;
+		}
 	}
 	else if (player->playerState == CHECKPOINT) {
 		checkpointMap = currentMap;
@@ -57,16 +77,20 @@ void Scene::update(int deltaTime) {
 		player->playerState = NONE;
 	}
 	else if (player->playerState == CHANGE_MAP) {
-		int changeMapId = map[currentMap]->changeMapId;
-		cout << "CID " << changeMapId << endl;
-		glm::ivec3 newMapInfo = map[currentMap]->changeMapInfo[changeMapId];
-		player->changeMap(glm::vec2(newMapInfo.y, newMapInfo.z) - glm::vec2(player->getPlayerSize()));
-		currentMap = newMapInfo.x;
-		player->setTileMap(map[currentMap]);
-		cout << "cmap " << currentMap << endl;
-		player->playerState = NONE;
+		if (!changeMap) {
+			changeMap = true;
+		}
+		else {
+			changeMap = false;
+			timer = 0;
+			int changeMapId = map[currentMap]->changeMapId;
+			glm::ivec3 newMapInfo = map[currentMap]->changeMapInfo[changeMapId];
+			player->changeMap(glm::vec2(newMapInfo.y, newMapInfo.z) - glm::vec2(player->getPlayerSize()));
+			currentMap = newMapInfo.x;
+			player->setTileMap(map[currentMap]);
+			player->playerState = NONE;
+		}
 	}
-	cout << "NANI " << player->playerState << endl;
 	currentTime += deltaTime;
 	player->update(deltaTime);
 }
@@ -80,13 +104,15 @@ void Scene::render() {
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map[currentMap]->renderBackground();
-	map[currentMap]->render();
-	player->render();
-	// Tornar a fer set de modelview i texCoordDispl ja que player->render() les modifica.
-	texProgram.setUniformMatrix4f("modelview", modelview);
-	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
-	map[currentMap]->renderFront();
-	map[currentMap]->renderLights();
+	if (currentMap != 0) {
+		map[currentMap]->render();
+		player->render();
+		// Tornar a fer set de modelview i texCoordDispl ja que player->render() les modifica.
+		texProgram.setUniformMatrix4f("modelview", modelview);
+		texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
+		map[currentMap]->renderFront();
+		//map[currentMap]->renderLights();
+	}
 }
 
 void Scene::calculateProjectionMatrix() {

@@ -21,7 +21,7 @@ TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoo
 }
 
 TileMap::TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
-	changeMapId = 0;
+	changeMapId = 1;
 
 	this->minCoords = minCoords;
 	// -4 i +4 per donar "efecte 2.5D" una mica
@@ -197,7 +197,7 @@ bool TileMap::loadTiles(const string &tilesFile) {
 			while (tile != ',') {
 				// if changeMap Tile
 				if (tile == 'c') {
-					changeTileInfo = glm::ivec3(); 
+					changeTileInfo = glm::ivec3();
 					// Map ID
 					tmp = "";
 					fin.get(tile);
@@ -545,7 +545,6 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm
 				(*position).y = tileSize * (y + 1);
 				collisionMade = true;
 			}
-			cout << "COLLISION! " << map[y*mapSize.x + x] << endl;
 			if (map[y*mapSize.x + x] == SPIKE && changeState < DEAD) {
 				changeState = DEAD;
 				return true;
