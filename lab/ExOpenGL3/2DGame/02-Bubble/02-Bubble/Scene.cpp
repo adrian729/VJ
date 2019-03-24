@@ -31,6 +31,14 @@ void Scene::init() {
 	currentMap = 1;
 	checkpointMap = 1;
 
+	// PRUEBAS SONIDO! Retocar la classe (es la del Sergio....), com a minim funciona <3
+	sound_prova = new sound_t(SoundPlayer::instance().createSound("sound/Little_Busters.wav"));
+	SoundPlayer::instance().playSound(sound_prova);
+	float v;
+	sound_prova->channel->setVolume(0.05f);
+	sound_prova->channel->getVolume(&v);
+	cout << "INFO: " << v << endl;
+
 	map[0] = TileMap::createTileMap("level00", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	map[1] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	map[2] = TileMap::createTileMap("level02", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);

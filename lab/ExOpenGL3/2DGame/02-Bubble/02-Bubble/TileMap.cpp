@@ -46,7 +46,6 @@ void TileMap::update(int deltaTime, ShaderProgram &program) {
 	animationCount++;
 	if (animationCount > 60 / 6) {
 		animationCount = 0;
-		int tile;
 		for (int j = mapSize.y - 1; j >= 0; j--) {
 			for (int i = 0; i < mapSize.x; i++) {
 				int type = mapType[j * mapSize.x + i];

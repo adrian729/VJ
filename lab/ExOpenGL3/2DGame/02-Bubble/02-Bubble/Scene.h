@@ -1,12 +1,12 @@
 #ifndef _SCENE_INCLUDE
 #define _SCENE_INCLUDE
 
-
 #include <glm/glm.hpp>
 #include "ShaderProgram.h"
 #include "TileMap.h"
 #include "Player.h"
 #include "PlayerState.h"
+#include "SoundPlayer.h"
 
 
 // Scene contains all the entities of our game.
@@ -47,6 +47,8 @@ private:
 	glm::mat4 projection;
 	glm::ivec2 sceneSize;
 	int checkpointMap;
+
+	sound_t *sound_prova;
 };
 
 
