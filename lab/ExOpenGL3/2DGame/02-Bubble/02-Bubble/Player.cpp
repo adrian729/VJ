@@ -18,8 +18,8 @@
 #define MOVE_KFPS 18
 #define JUMP_KFPS 8
 #define FALL_KFPS 6
-#define GRAVITY_KFPS 26
-#define DEATH_KFPS 8
+#define GRAVITY_KFPS 14
+#define DEATH_KFPS 6
 
 
 enum PlayerAnims {
@@ -209,7 +209,7 @@ void Player::update(int deltaTime) {
 		return;
 	}
 
-	if (gravityStep < GRAVITY_STEP) gravityStep += 0.3f;
+	if (gravityStep < GRAVITY_STEP) gravityStep += 0.4f;
 
 	if (Game::instance().getSpecialKey(GLUT_KEY_LEFT)) {
 		mv = true;
