@@ -6,7 +6,7 @@
 #include "TileMap.h"
 #include "Player.h"
 #include "PlayerState.h"
-#include "SoundPlayer.h"
+#include "Audio.h"
 
 
 // Scene contains all the entities of our game.
@@ -40,6 +40,8 @@ private:
 	int currentMap;
 	int transitionMap;
 	TileMap *map[3];
+	char* soundMap[3]; // musica lligada a cada mapa
+	audio *actualSound;
 	Player *player;
 	ShaderProgram texProgram;
 	float currentTime;
@@ -48,7 +50,6 @@ private:
 	glm::ivec2 sceneSize;
 	int checkpointMap;
 
-	sound_t *sound_prova;
 };
 
 

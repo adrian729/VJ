@@ -143,6 +143,9 @@ void Player::update(int deltaTime) {
 
 	sprite[currentSpriteSheet]->update(deltaTime);
 
+	// RESTART
+	if (playerState == RESTART) return;
+
 	// Death
 	if (playerState == DEAD) {
 		if (left && sprite[currentSpriteSheet]->animation() != DEATH_LEFT)
