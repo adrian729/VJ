@@ -21,13 +21,29 @@
 #define GRAVITY_KFPS 14
 #define DEATH_KFPS 6
 
+#define INFINITE_LOOP -1
 
-enum PlayerAnims {
+#define STAND_SOUND_VOLUME .1f
+#define MOVE_SOUND_VOLUME .1f
+#define JUMP_SOUND_VOLUME .1f
+#define FALL_SOUND_VOLUME .1f
+#define GRAVITY_SOUND_VOLUME .1f
+#define DEATH_SOUND_VOLUME .1f
+
+
+enum PlayerAnimations {
 	STAND_LEFT, STAND_RIGHT, MOVE_LEFT, MOVE_RIGHT, JUMP_LEFT, JUMP_RIGHT,
 	FALL_LEFT, FALL_RIGHT, GRAVITY_LEFT, GRAVITY_RIGHT, DEATH_LEFT, DEATH_RIGHT
 };
 
+enum PlayerAnimationSounds {
+	STAND, MOVE, JUMP, FALL, CHANGE_GRAVITY_EFFECT, DEATH
+};
+
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
+
+	actualSound = NULL;
+
 	tileMapDispl = tileMapPos;
 
 	int xcols = 8;
@@ -112,6 +128,14 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 		sprite[k]->changeAnimation(0);
 		sprite[k]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 	}
+
+	soundAction[STAND] = "sound/Actions/silence.wav";
+	soundAction[MOVE] = "sound/Actions/run.wav";
+	soundAction[JUMP] = "sound/Actions/silence.wav";
+	soundAction[FALL] = "sound/Actions/silence.wav";
+	soundAction[CHANGE_GRAVITY_EFFECT] = "sound/Actions/silence.wav";
+	soundAction[DEATH] = "sound/Actions/silence.wav";
+
 	resetVariables();
 }
 
@@ -123,6 +147,7 @@ void Player::resetVariables() {
 	jumping = false;
 	left = true;
 	sprite[currentSpriteSheet]->changeAnimation(0);
+	changeAnimationSound(STAND, STAND_SOUND_VOLUME);
 
 	animationTimer = 0;
 	playerState = NONE;
@@ -139,6 +164,12 @@ void Player::changeMap(const glm::vec2 &newPosition) {
 	setPosition(newPosition);
 }
 
+void Player::changeAnimationSound(int animation, float volume) {
+	if (actualSound) Audio::instance().release(actualSound);
+	actualSound = new audio(Audio::instance().createAudio(soundAction[animation]));
+	Audio::instance().play(actualSound, INFINITE_LOOP, volume);
+}
+
 void Player::update(int deltaTime) {
 
 	sprite[currentSpriteSheet]->update(deltaTime);
@@ -148,10 +179,14 @@ void Player::update(int deltaTime) {
 
 	// Death
 	if (playerState == DEAD) {
-		if (left && sprite[currentSpriteSheet]->animation() != DEATH_LEFT)
+		if (left && sprite[currentSpriteSheet]->animation() != DEATH_LEFT) {
 			sprite[currentSpriteSheet]->changeAnimation(DEATH_LEFT);
-		else if (!left && sprite[currentSpriteSheet]->animation() != DEATH_RIGHT)
+			changeAnimationSound(DEATH, DEATH_SOUND_VOLUME);
+		}
+		else if (!left && sprite[currentSpriteSheet]->animation() != DEATH_RIGHT) {
 			sprite[currentSpriteSheet]->changeAnimation(DEATH_RIGHT);
+			changeAnimationSound(DEATH, DEATH_SOUND_VOLUME);
+		}
 
 		animationTimer++;
 		// frames animation * fps update / keyframes ps animation
@@ -196,10 +231,14 @@ void Player::update(int deltaTime) {
 	// Changing gravity
 	if (playerState == CHANGING_GRAVITY) {
 		if (g == 1) posPlayer.y -= g * startColision[currentSpriteSheet].y;
-		if (left && sprite[currentSpriteSheet]->animation() != GRAVITY_LEFT)
+		if (left && sprite[currentSpriteSheet]->animation() != GRAVITY_LEFT) {
 			sprite[currentSpriteSheet]->changeAnimation(GRAVITY_LEFT);
-		else if (!left && sprite[currentSpriteSheet]->animation() != GRAVITY_RIGHT)
+			changeAnimationSound(CHANGE_GRAVITY_EFFECT, GRAVITY_SOUND_VOLUME);
+		}
+		else if (!left && sprite[currentSpriteSheet]->animation() != GRAVITY_RIGHT) {
 			sprite[currentSpriteSheet]->changeAnimation(GRAVITY_RIGHT);
+			changeAnimationSound(CHANGE_GRAVITY_EFFECT, GRAVITY_SOUND_VOLUME);
+		}
 
 		animationTimer++;
 		// frames animation * fps update / keyframes ps animation
@@ -219,8 +258,10 @@ void Player::update(int deltaTime) {
 		left = true;
 		posPlayer.x -= MOVEMENT_STEP;
 		if (Game::instance().ground) {
-			if (sprite[currentSpriteSheet]->animation() != MOVE_LEFT)
+			if (sprite[currentSpriteSheet]->animation() != MOVE_LEFT) {
 				sprite[currentSpriteSheet]->changeAnimation(MOVE_LEFT);
+				changeAnimationSound(MOVE, MOVE_SOUND_VOLUME);
+			}
 		}
 	}
 	else if (Game::instance().getSpecialKey(GLUT_KEY_RIGHT)) {
@@ -228,15 +269,21 @@ void Player::update(int deltaTime) {
 		left = false;
 		posPlayer.x += MOVEMENT_STEP;
 		if (Game::instance().ground) {
-			if (sprite[currentSpriteSheet]->animation() != MOVE_RIGHT)
+			if (sprite[currentSpriteSheet]->animation() != MOVE_RIGHT) {
 				sprite[currentSpriteSheet]->changeAnimation(MOVE_RIGHT);
+				changeAnimationSound(MOVE, MOVE_SOUND_VOLUME);
+			}
 		}
 	}
 	else if (!mv) {
-		if (left && Game::instance().ground && sprite[currentSpriteSheet]->animation() != STAND_LEFT)
+		if (left && Game::instance().ground && sprite[currentSpriteSheet]->animation() != STAND_LEFT) {
 			sprite[currentSpriteSheet]->changeAnimation(STAND_LEFT);
-		else if (!left && Game::instance().ground && sprite[currentSpriteSheet]->animation() != STAND_RIGHT)
+			changeAnimationSound(STAND, STAND_SOUND_VOLUME);
+		}
+		else if (!left && Game::instance().ground && sprite[currentSpriteSheet]->animation() != STAND_RIGHT) {
 			sprite[currentSpriteSheet]->changeAnimation(STAND_RIGHT);
+			changeAnimationSound(STAND, STAND_SOUND_VOLUME);
+		}
 	}
 
 	if (left) posPlayer.x += startColision[currentSpriteSheet].x;
@@ -254,10 +301,14 @@ void Player::update(int deltaTime) {
 		jumpAngle = 0;
 		startY = posPlayer.y;
 		Game::instance().ground = false;
-		if (left && sprite[currentSpriteSheet]->animation() != JUMP_LEFT)
+		if (left && sprite[currentSpriteSheet]->animation() != JUMP_LEFT) {
 			sprite[currentSpriteSheet]->changeAnimation(JUMP_LEFT);
-		else if (!left && sprite[currentSpriteSheet]->animation() != JUMP_RIGHT)
+			changeAnimationSound(JUMP, JUMP_SOUND_VOLUME);
+		}
+		else if (!left && sprite[currentSpriteSheet]->animation() != JUMP_RIGHT) {
 			sprite[currentSpriteSheet]->changeAnimation(JUMP_RIGHT);
+			changeAnimationSound(JUMP, JUMP_SOUND_VOLUME);
+		}
 	}
 	if (jumping) {
 		jumpAngle += JUMP_ANGLE_STEP;
@@ -303,10 +354,14 @@ void Player::update(int deltaTime) {
 	}
 	if (!Game::instance().ground && !jumping) {
 		mv = true;
-		if (left && sprite[currentSpriteSheet]->animation() != FALL_LEFT)
+		if (left && sprite[currentSpriteSheet]->animation() != FALL_LEFT) {
 			sprite[currentSpriteSheet]->changeAnimation(FALL_LEFT);
-		else if (!left && sprite[currentSpriteSheet]->animation() != FALL_RIGHT)
+			changeAnimationSound(FALL, FALL_SOUND_VOLUME);
+		}
+		else if (!left && sprite[currentSpriteSheet]->animation() != FALL_RIGHT) {
 			sprite[currentSpriteSheet]->changeAnimation(FALL_RIGHT);
+			changeAnimationSound(FALL, FALL_SOUND_VOLUME);
+		}
 	}
 
 	if (left) posPlayer.x -= startColision[currentSpriteSheet].x;

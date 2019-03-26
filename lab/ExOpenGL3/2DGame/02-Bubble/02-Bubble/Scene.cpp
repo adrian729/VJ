@@ -126,11 +126,11 @@ void Scene::update(int deltaTime) {
 		else if (player->playerState == CHECKPOINT) {
 			if (currentMap != checkpointMap) map[checkpointMap]->activatedCheckpoint = glm::ivec2(-1, -1);
 			checkpointMap = currentMap;
-			player->checkpoint = player->posPlayer;
+			player->checkpoint = (map[checkpointMap]->activatedCheckpoint*map[checkpointMap]->getTileSize() - player->getPlayerSize()) + map[checkpointMap]->getTileSize();
 			player->playerState = NONE;
 		}
 		player->update(deltaTime);
-	}	
+	}
 	Audio::instance().update();
 	map[currentMap]->update(deltaTime, texProgram);
 }

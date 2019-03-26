@@ -3,10 +3,11 @@
 
 
 #include <glm/glm.hpp>
+#include <vector>
 #include "Texture.h"
 #include "ShaderProgram.h"
 #include "PlayerState.h"
-#include <vector>
+#include "Enemy.h"
 
 
 // Class Tilemap is capable of loading a tile map from a text file in a very
@@ -84,6 +85,9 @@ private:
 	// Lights
 	GLuint vaoLights, vboLights;
 	Texture lightsImage;
+
+	// Enemies
+	Enemy *enemy;
 
 	// General
 	GLint posLocation, texCoordLocation;

@@ -14,7 +14,7 @@
     <ClInclude Include="AnimKeyframes.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Audio.h" />
-    <ClInclude Include="SoundPlayer.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerState.h" />
     <ClInclude Include="Scene.h" />
@@ -34,7 +34,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
-    <ClCompile Include="SoundPlayer.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TileMap.cpp" />

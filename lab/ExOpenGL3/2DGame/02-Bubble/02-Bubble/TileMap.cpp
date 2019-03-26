@@ -3,9 +3,10 @@
 #include <sstream>
 #include "TileMap.h"
 
-
 using namespace std;
 
+#define SCREEN_X 0
+#define SCREEN_Y 0
 
 #define SPIKE 17
 #define CONVEYOR_LEFT 25
@@ -22,6 +23,11 @@ TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoo
 }
 
 TileMap::TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
+
+	enemy = new Enemy();
+	enemy->init(glm::ivec2(SCREEN_X, SCREEN_Y), program);
+	enemy->setPosition(glm::vec2(7*32, 7*32));
+
 	changeMapInfo.push_back(glm::ivec3(1, 33, 23));
 	changeMapInfoId = changeMapInfo.size();
 
@@ -71,6 +77,8 @@ void TileMap::update(int deltaTime, ShaderProgram &program) {
 		}
 		prepareArrays(program);
 	}
+
+	enemy->update(deltaTime);
 }
 
 void TileMap::renderBackground() const {
@@ -91,6 +99,8 @@ void TileMap::render() const {
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * mapSize.x * mapSize.y);
 	glDisable(GL_TEXTURE_2D);
+
+	enemy->render();
 }
 
 void TileMap::renderFront() const {
@@ -278,11 +288,11 @@ bool TileMap::loadTiles(const string &tilesFile) {
 #ifndef _WIN32
 		fin.get(tile);
 #endif
-		}
+	}
 	fin.close();
 
 	return true;
-	}
+}
 
 bool TileMap::loadFrontTiles(const string &frontTilesFile) {
 	ifstream fin;
@@ -332,11 +342,11 @@ bool TileMap::loadFrontTiles(const string &frontTilesFile) {
 #ifndef _WIN32
 		fin.get(tile);
 #endif
-		}
+	}
 	fin.close();
 
 	return true;
-	}
+}
 
 bool TileMap::loadLights(const string &lightsFile) {
 	ifstream fin;

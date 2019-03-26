@@ -5,6 +5,7 @@
 #include "Sprite.h"
 #include "TileMap.h"
 #include "PlayerState.h"
+#include "Audio.h"
 
 
 // Player is basically a Sprite that represents the player. As such it has
@@ -40,6 +41,8 @@ public:
 	glm::ivec2 posPlayer, checkpoint;
 
 private:
+	void changeAnimationSound(int animation, float volume=1.f);
+
 	bool jumping;
 	bool mv; // direccio mira pj i si s'ha mogut
 	glm::ivec2 tileMapDispl;
@@ -50,6 +53,9 @@ private:
 	Texture spritesheet[2];
 	Sprite *sprite[2];
 	TileMap *map;
+
+	char *soundAction[6]; // musica lligada a cada accio
+	audio *actualSound;
 };
 
 

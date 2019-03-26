@@ -40,7 +40,7 @@ private:
 	int currentMap;
 	int transitionMap;
 	TileMap *map[3];
-	char* soundMap[3]; // musica lligada a cada mapa
+	char *soundMap[3]; // musica lligada a cada mapa
 	audio *actualSound;
 	Player *player;
 	ShaderProgram texProgram;
