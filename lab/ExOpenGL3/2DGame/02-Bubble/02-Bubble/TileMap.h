@@ -24,12 +24,16 @@ public:
 
 	TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program);
 	~TileMap();
-	
-	void update(int deltaTime, ShaderProgram &program);
+
+	void update(int deltaTime, ShaderProgram &program,
+		const glm::ivec2 &playerPos, const glm::ivec2 &playerSize, 
+		const glm::ivec3 &playerCollision, const bool &playerLeft, 
+		int *playerState, const bool &g);
 	void renderBackground() const;
 	void render() const;
 	void renderFront() const;
 	void renderLights() const;
+	void renderEnemies() const;
 	void free();
 
 	int getTileSize() const { return tileSize; }
@@ -41,24 +45,24 @@ public:
 	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
 	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
 	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm::ivec2 *position, int &changeState);
-	
+
 	int animationCount;
 	int changeMapInfoId;
 	vector<glm::ivec3> changeMapInfo; // mapID, tile X, tile Y
 	glm::ivec2 activatedCheckpoint;
 
 private:
-	bool loadLevel(const string &levelName);
+	bool loadLevel(const string &levelName, ShaderProgram &program);
 	bool loadBackground(const string &backgroundFile);
 	bool loadTiles(const string &tilesFile);
 	bool loadFrontTiles(const string &frontTilesFile);
 	bool loadLights(const string &lightsFile);
+	bool loadEnemies(const string &enemiesFile, ShaderProgram &program);
 	void prepareArrays(ShaderProgram &program);
 	void prepareArraysBackground(ShaderProgram &program);
 	void prepareArraysLights(ShaderProgram &program);
 	void prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const glm::ivec2 &blockSize, const glm::ivec2 &initPos,
 		const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program);
-	void TileMap::changeState(const int &tile, int &state);
 
 private:
 	// Background
@@ -87,7 +91,7 @@ private:
 	Texture lightsImage;
 
 	// Enemies
-	Enemy *enemy;
+	vector<Enemy*> enemies;
 
 	// General
 	GLint posLocation, texCoordLocation;

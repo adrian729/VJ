@@ -70,7 +70,6 @@ void Scene::update(int deltaTime) {
 		timer++;
 		if (timer == 1) {
 			int nextMap = currentMap;
-			cout << "STATE " << player->playerState << endl;
 			if (player->playerState == RESTART) {
 				nextMap = checkpointMap;
 			}
@@ -132,7 +131,10 @@ void Scene::update(int deltaTime) {
 		player->update(deltaTime);
 	}
 	Audio::instance().update();
-	map[currentMap]->update(deltaTime, texProgram);
+	map[currentMap]->update(deltaTime, texProgram, 
+		player->posPlayer, player->getPlayerSize(), 
+		player->getPlayerCollision(), player->left,
+		&player->playerState, Game::instance().gravity);
 }
 
 void Scene::render() {
@@ -146,6 +148,7 @@ void Scene::render() {
 	map[currentMap]->renderBackground();
 	if (currentMap != 0) {
 		map[currentMap]->render();
+		map[currentMap]->renderEnemies();
 		player->render();
 		// Tornar a fer set de modelview i texCoordDispl ja que player->render() les modifica.
 		texProgram.setUniformMatrix4f("modelview", modelview);

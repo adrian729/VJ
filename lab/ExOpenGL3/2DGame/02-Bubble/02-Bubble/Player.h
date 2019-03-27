@@ -30,6 +30,8 @@ public:
 	void setTileMap(TileMap *tileMap);
 	void setPosition(const glm::vec2 &pos);
 	glm::ivec2 getPlayerSize() { return sprite[currentSpriteSheet]->size; }
+	glm::ivec3 getPlayerCollision() { return startCollision[currentSpriteSheet]; }
+
 
 	void restart();
 	void changeMap(const glm::vec2 &newPosition);
@@ -49,7 +51,7 @@ private:
 	int jumpAngle, startY, currentSpriteSheet;
 	int g; // direccio gravetat (1 normal -1 invertida)
 	float gravityStep;
-	glm::ivec3 startColision[2]; // left, up, right (x, y, t)
+	glm::ivec3 startCollision[2]; // left, up, right (x, y, t)
 	Texture spritesheet[2];
 	Sprite *sprite[2];
 	TileMap *map;

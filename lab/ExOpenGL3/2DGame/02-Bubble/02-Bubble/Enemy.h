@@ -6,26 +6,35 @@
 
 class Enemy {
 
-	public:
-		Enemy() {};
-		~Enemy();
+public:
+	Enemy() {};
+	~Enemy();
 
-		void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
-		void update(int deltaTime);
-		void render();
+	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram,
+		const int &type, const bool &direction,
+		const glm::ivec2 &posStart, const glm::ivec2 &posEnd, const int &upDown);
+	void update(int deltaTime);
+	void render();
 
-		void setPosition(const glm::vec2 &pos);
+	void getSize() const;
+	void setPosition(const glm::vec2 &pos);
 
-		bool left;
-		glm::ivec2 posEnemy;
+	bool horizontal;
 
-	private:
-		glm::ivec2 tileMapDispl;
-		int g; // direccio gravetat (1 normal -1 invertida)
-		int currentSpriteSheet;
-		glm::ivec3 startColision[2]; // left, up, right (x, y, t)
-		Texture spritesheet[2];
-		Sprite *sprite[2];
+	int upDown; // spritesheet for looking up or down
+	int s;
+	glm::ivec2 posEnemy;
+	glm::ivec2 enemySize;
+
+	glm::ivec3 getStartCollision() const { return startCollision[upDown]; };
+
+private:
+	glm::ivec2 tileMapDispl;
+	int velocity;
+	glm::ivec2 startPosition, endPosition;
+	glm::ivec3 startCollision[2]; // left, up, right (x, y, t)
+	Texture spritesheet[2];
+	Sprite *sprite[2];
 };
 
 #endif // _ENEMY_INCLUDE
