@@ -2,7 +2,6 @@
 #define _ENEMY_INCLUDE
 
 #include "Sprite.h"
-#include "PlayerState.h"
 
 class Enemy {
 
@@ -21,8 +20,8 @@ public:
 
 	bool horizontal;
 
+	int s; // si s < 0, left
 	int upDown; // spritesheet for looking up or down
-	int s;
 	glm::ivec2 posEnemy;
 	glm::ivec2 enemySize;
 

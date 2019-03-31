@@ -1,13 +1,11 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include "Game.h"
+#include "Globals.h"
 
 
 //Remove console (only works in Visual Studio)
 //#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
-
-
-#define TIME_PER_FRAME 1000.f / 60.f // Approx. 60 fps
 
 
 static int prevTime;

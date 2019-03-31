@@ -7,13 +7,12 @@
 #include "Game.h"
 
 
-#define SCREEN_X 0
-#define SCREEN_Y 0
-
 #define TRANSITION_TIME 60
 
 #define INFINITE_LOOP -1
 #define MAP_SOUND_VOLUME .05f
+
+#define CANTI_TV 0
 
 
 Scene::Scene() {
@@ -41,15 +40,22 @@ void Scene::init() {
 	currentMap = 1;
 	checkpointMap = 1;
 
-	map[0] = TileMap::createTileMap("level00", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
-	// soundMap[0] no hi ha
-	map[1] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	// Canti TV
+	map[0] = TileMap::createTileMap("CantiTV", glm::vec2(0, 0), texProgram);
+	sceneSize = map[CANTI_TV]->getSceneSize();
+	tileSize = map[CANTI_TV]->getTileSize();
+	soundMap[0] = "sound/Songs/INTRO-Thank_You_My_Twilight.wav";
+
+	map[1] = TileMap::createTileMap("level00", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	soundMap[1] = "sound/Songs/Little_Busters.wav";
-	map[2] = TileMap::createTileMap("level02", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
-	soundMap[2] = "sound/Songs/Thank_You_My_Twilight.wav";
+
+	//map[1] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	//soundMap[1] = "sound/Songs/Little_Busters.wav";
+	//map[2] = TileMap::createTileMap("level02", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	//soundMap[2] = "sound/Songs/Thank_You_My_Twilight.wav";
 
 	player = new Player();
-	sceneSize = map[currentMap]->getSceneSize();
+
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
 	player->setPosition(map[currentMap]->getPlayerInitPosition() - glm::vec2(player->getPlayerSize()));
 	player->checkpoint = map[currentMap]->getPlayerInitPosition() - glm::vec2(player->getPlayerSize());
@@ -64,9 +70,12 @@ void Scene::init() {
 void Scene::update(int deltaTime) {
 
 	currentTime += deltaTime;
+	bool menu = false;
+	if (menu) {
 
+	}
 	// Canviar de mapa
-	if (changeMap && timer < TRANSITION_TIME) {
+	else if (changeMap && timer < TRANSITION_TIME) {
 		timer++;
 		if (timer == 1) {
 			int nextMap = currentMap;
@@ -125,14 +134,14 @@ void Scene::update(int deltaTime) {
 		else if (player->playerState == CHECKPOINT) {
 			if (currentMap != checkpointMap) map[checkpointMap]->activatedCheckpoint = glm::ivec2(-1, -1);
 			checkpointMap = currentMap;
-			player->checkpoint = (map[checkpointMap]->activatedCheckpoint*map[checkpointMap]->getTileSize() - player->getPlayerSize()) + map[checkpointMap]->getTileSize();
+			player->checkpoint = (map[checkpointMap]->activatedCheckpoint*tileSize - player->getPlayerSize()) + tileSize;
 			player->playerState = NONE;
 		}
 		player->update(deltaTime);
 	}
 	Audio::instance().update();
-	map[currentMap]->update(deltaTime, texProgram, 
-		player->posPlayer, player->getPlayerSize(), 
+	map[currentMap]->update(deltaTime, texProgram,
+		player->posPlayer, player->getPlayerSize(),
 		player->getPlayerCollision(), player->left,
 		&player->playerState, Game::instance().gravity);
 }
@@ -146,7 +155,7 @@ void Scene::render() {
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map[currentMap]->renderBackground();
-	if (currentMap != 0) {
+	if (currentMap > CANTI_TV) {
 		map[currentMap]->render();
 		map[currentMap]->renderEnemies();
 		player->render();
@@ -154,8 +163,8 @@ void Scene::render() {
 		texProgram.setUniformMatrix4f("modelview", modelview);
 		texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 		map[currentMap]->renderFront();
-		//map[currentMap]->renderLights();
 	}
+	map[CANTI_TV]->renderBackground();
 }
 
 void Scene::calculateProjectionMatrix() {

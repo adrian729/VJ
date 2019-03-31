@@ -6,7 +6,7 @@
 #include <vector>
 #include "Texture.h"
 #include "ShaderProgram.h"
-#include "PlayerState.h"
+#include "Globals.h"
 #include "Enemy.h"
 
 
@@ -26,8 +26,8 @@ public:
 	~TileMap();
 
 	void update(int deltaTime, ShaderProgram &program,
-		const glm::ivec2 &playerPos, const glm::ivec2 &playerSize, 
-		const glm::ivec3 &playerCollision, const bool &playerLeft, 
+		const glm::ivec2 &playerPos, const glm::ivec2 &playerSize,
+		const glm::ivec3 &playerCollision, const bool &playerLeft,
 		int *playerState, const bool &g);
 	void renderBackground() const;
 	void render() const;

@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #include "Player.h"
 #include "Game.h"
+#include "Globals.h"
 
 
 #define JUMP_ANGLE_STEP 5
@@ -12,14 +13,13 @@
 #define MOVEMENT_STEP 4
 #define GRAVITY_STEP 20
 
-
-#define FPS 60
 #define STAND_KFPS 6
 #define MOVE_KFPS 18
 #define JUMP_KFPS 8
 #define FALL_KFPS 6
 #define GRAVITY_KFPS 14
 #define DEATH_KFPS 6
+
 
 #define INFINITE_LOOP -1
 
@@ -55,7 +55,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 	//spritesheet[1].loadFromFile("images/HarukoSpritesDown-test.png", TEXTURE_PIXEL_FORMAT_RGBA);
 
 	for (int k = 0; k < 2; k++) {
-		startCollision[k] = glm::ivec3(15, 5, 16);
+		startCollision[k] = glm::ivec3(13, 5, 14);
 		sprite[k] = Sprite::createSprite(glm::ivec2(64, 64), glm::vec2(1.f / xcols, 1.f / ycols), &spritesheet[k], &shaderProgram);
 		sprite[k]->setNumberAnimations(12);
 

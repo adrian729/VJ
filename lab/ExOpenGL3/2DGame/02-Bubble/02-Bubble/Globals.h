@@ -1,0 +1,20 @@
+#ifndef _GLOBALS
+#define _GLOBALS
+
+#define FPS 60
+#define TIME_PER_FRAME 1000.f / FPS // Approx. 60 fps
+
+#define SCREEN_X 8*32
+#define SCREEN_Y 7*32
+
+#define SPIKE 17
+#define CONVEYOR_LEFT 25
+#define CONVEYOR_RIGHT 33
+#define CONTROL_POINT 41
+#define ACTIVATED_CONTROL_POINT 49
+
+enum PlayerStates {
+	NONE, CHANGING_GRAVITY, CHANGE_GRAVITY, CHANGE_MAP, CHECKPOINT, DEAD, RESTART
+};
+
+#endif // _GLOBALS

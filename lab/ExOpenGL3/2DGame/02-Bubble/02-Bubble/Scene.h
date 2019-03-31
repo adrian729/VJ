@@ -5,7 +5,7 @@
 #include "ShaderProgram.h"
 #include "TileMap.h"
 #include "Player.h"
-#include "PlayerState.h"
+#include "Globals.h"
 #include "Audio.h"
 
 
@@ -48,6 +48,7 @@ private:
 	float V, A;
 	glm::mat4 projection;
 	glm::ivec2 sceneSize;
+	int tileSize;
 	int checkpointMap;
 
 };

@@ -2,18 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include "TileMap.h"
-#include "PlayerState.h"
+#include "Globals.h"
 
 using namespace std;
 
-#define SCREEN_X 0
-#define SCREEN_Y 0
-
-#define SPIKE 17
-#define CONVEYOR_LEFT 25
-#define CONVEYOR_RIGHT 33
-#define CONTROL_POINT 41
-#define ACTIVATED_CONTROL_POINT 49
 
 #define CONVEYOR_STEP 3
 
@@ -27,10 +19,6 @@ TileMap *TileMap::createTileMap(const string &levelName, const glm::vec2 &minCoo
 }
 
 TileMap::TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program) {
-
-	//enemy = new Enemy();
-	//enemy->init(glm::ivec2(SCREEN_X, SCREEN_Y), program, ARM);
-	//enemy->setPosition(glm::vec2(7*32, 7*32));
 
 	changeMapInfo.push_back(glm::ivec3(1, 33, 23));
 	changeMapInfoId = changeMapInfo.size();
@@ -644,11 +632,13 @@ void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const g
 		}
 	}
 
+
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 24 * nTiles * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+	if (vertices.size() > 0)
+		glBufferData(GL_ARRAY_BUFFER, 24 * nTiles * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 	posLocation = program.bindVertexAttribute("position", 2, 4 * sizeof(float), 0);
 	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4 * sizeof(float), (void *)(2 * sizeof(float)));
 }
