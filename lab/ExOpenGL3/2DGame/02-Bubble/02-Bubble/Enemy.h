@@ -20,7 +20,7 @@ public:
 
 	bool horizontal;
 
-	int s; // si s < 0, left
+	int s; // si s < 0, left/up
 	int upDown; // spritesheet for looking up or down
 	glm::ivec2 posEnemy;
 	glm::ivec2 enemySize;

@@ -29,7 +29,8 @@ public:
 	void update(int deltaTime);
 	void render();
 
-	bool changeMap;
+	bool changeMap, menu, instructions;
+	int selection;
 	int timer;
 
 private:
@@ -39,8 +40,8 @@ private:
 private:
 	int currentMap;
 	int transitionMap;
-	TileMap *map[3];
-	char *soundMap[3]; // musica lligada a cada mapa
+	TileMap *map[10];
+	char *soundMap[10]; // musica lligada a cada mapa
 	audio *actualSound;
 	Player *player;
 	ShaderProgram texProgram;
@@ -50,7 +51,8 @@ private:
 	glm::ivec2 sceneSize;
 	int tileSize;
 	int checkpointMap;
-
+	vector<bool> canPress;
+	bool canPressSpace;
 };
 
 

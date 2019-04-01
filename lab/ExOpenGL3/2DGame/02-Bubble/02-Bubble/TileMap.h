@@ -62,7 +62,7 @@ private:
 	void prepareArraysBackground(ShaderProgram &program);
 	void prepareArraysLights(ShaderProgram &program);
 	void prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const glm::ivec2 &blockSize, const glm::ivec2 &initPos,
-		const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program);
+		const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program, const bool &front);
 
 private:
 	// Background
@@ -92,6 +92,10 @@ private:
 
 	// Enemies
 	vector<Enemy*> enemies;
+
+	// Movile Platforms (Y is fixed, so info is for X axis in pixels)
+	vector<int> typeMP, startMP, endMP, positionMP, velocityMP, sMP, yMP;
+	// sMP < 0 == left
 
 	// General
 	GLint posLocation, texCoordLocation;

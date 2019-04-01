@@ -113,7 +113,7 @@ void Enemy::update(int deltaTime) {
 		if (s < 0) {
 			collision = startCollision[upDown].x;
 			if ((posEnemy.x + collision) < startPosition.x) {
-				posEnemy -= s * velocity;
+				posEnemy.x -= s * velocity;
 				s *= -1;
 				if (sprite[upDown]->animation() != MOVE_2) {
 					sprite[upDown]->changeAnimation(MOVE_2);
@@ -123,7 +123,7 @@ void Enemy::update(int deltaTime) {
 		else {
 			collision = startCollision[upDown].z;
 			if ((posEnemy.x - collision) > endPosition.x) {
-				posEnemy -= s * velocity;
+				posEnemy.x -= s * velocity;
 				s *= -1;
 				if (sprite[upDown]->animation() != MOVE_1) {
 					sprite[upDown]->changeAnimation(MOVE_1);
@@ -132,8 +132,30 @@ void Enemy::update(int deltaTime) {
 		}
 	}
 	else {
-
+		posEnemy.y += s * velocity;
+		// si s < 0, up
+		if (s < 0) {
+			collision = startCollision[upDown].g;
+			if ((posEnemy.y + collision) < startPosition.y) {
+				posEnemy.y -= s * velocity;
+				s *= -1;
+				if (sprite[upDown]->animation() != MOVE_2) {
+					sprite[upDown]->changeAnimation(MOVE_2);
+				}
+			}
+		}
+		else {
+			collision = startCollision[upDown].g;
+			if ((posEnemy.y - collision) > endPosition.y) {
+				posEnemy.y -= s * velocity;
+				s *= -1;
+				if (sprite[upDown]->animation() != MOVE_1) {
+					sprite[upDown]->changeAnimation(MOVE_1);
+				}
+			}
+		}
 	}
+
 	sprite[upDown]->setPosition(glm::vec2(float(tileMapDispl.x + posEnemy.x), float(tileMapDispl.y + posEnemy.y)));
 }
 

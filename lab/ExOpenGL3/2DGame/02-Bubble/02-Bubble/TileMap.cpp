@@ -8,6 +8,7 @@ using namespace std;
 
 
 #define CONVEYOR_STEP 3
+#define DIV_FPS 6
 
 enum EnemyType {
 	ARM
@@ -46,12 +47,12 @@ void TileMap::update(int deltaTime, ShaderProgram &program,
 	int *playerState, const bool &g) {
 
 	animationCount++;
-	if (animationCount > 60 / 6) {
+	if (animationCount > FPS / DIV_FPS) {
 		animationCount = 0;
 		for (int j = mapSize.y - 1; j >= 0; j--) {
 			for (int i = 0; i < mapSize.x; i++) {
 				int type = mapType[j * mapSize.x + i];
-				if (type > 0 && type < 100) {
+				if (type > 0 && type < CHANGE_MAP_TILE) {
 					if (type == CONTROL_POINT) {
 						if (i == activatedCheckpoint.x && j == activatedCheckpoint.y) {
 							type = ACTIVATED_CONTROL_POINT;
@@ -71,14 +72,34 @@ void TileMap::update(int deltaTime, ShaderProgram &program,
 				}
 			}
 		}
-		prepareArrays(program);
+	}
+	prepareArrays(program);
+
+	int playerStartX, playerStartY, playerEndX, playerEndY;
+	playerStartX = playerPos.x;
+	playerEndX = playerStartX + playerSize.x;
+	playerStartY = playerPos.y;
+	playerEndY = playerStartY + playerSize.y;
+	if (playerLeft) {
+		playerStartX += playerCollision.r;
+		playerEndX -= playerCollision.b;
+	}
+	else {
+		playerStartX += playerCollision.b;
+		playerEndX -= playerCollision.r;
+	}
+	if (g) {
+		playerStartY += playerCollision.g;
+	}
+	else {
+		playerEndY -= playerCollision.g;
 	}
 
+	// Check collision player/enemy
 	int enemyStartX, enemyStartY, enemyEndX, enemyEndY;
-	int playerStartX, playerStartY, playerEndX, playerEndY;
 	for (int i = 0; i < enemies.size(); i++) {
 		enemies[i]->update(deltaTime);
-		// Check collision player/enemy
+
 		glm::ivec3 enemyStartCollision = enemies[i]->getStartCollision();
 		enemyStartX = enemies[i]->posEnemy.x;
 		enemyEndX = enemyStartX + enemies[i]->enemySize.x;
@@ -97,25 +118,6 @@ void TileMap::update(int deltaTime, ShaderProgram &program,
 		}
 		else {
 			enemyEndY -= enemyStartCollision.g;
-		}
-
-		playerStartX = playerPos.x;
-		playerEndX = playerStartX + playerSize.x;
-		playerStartY = playerPos.y;
-		playerEndY = playerStartY + playerSize.y;
-		if (playerLeft) {
-			playerStartX += playerCollision.r;
-			playerEndX -= playerCollision.b;
-		}
-		else {
-			playerStartX += playerCollision.b;
-			playerEndX -= playerCollision.r;
-		}
-		if (g) {
-			playerStartY += playerCollision.g;
-		}
-		else {
-			playerEndY -= playerCollision.g;
 		}
 
 		if (playerEndX > enemyStartX &&
@@ -323,8 +325,56 @@ bool TileMap::loadTiles(const string &tilesFile) {
 						fin.get(tile);
 					}
 					changeTileInfo.b = (stoi(tmp) + 1) * tileSize;
-					tileID = to_string(100 + changeMapInfo.size());
+					tileID = to_string(CHANGE_MAP_TILE + changeMapInfo.size());
 					changeMapInfo.push_back(changeTileInfo);
+				}
+				else if (tile == 'm') {
+					// startMP, endMP, positionMP, velocityMP, sMP;
+					// Tile Type
+					tmp = "";
+					fin.get(tile);
+					while (tile != ';') {
+						tmp += tile;
+						fin.get(tile);
+					}
+					typeMP.push_back(stoi(tmp));
+					// Direction
+					tmp = "";
+					fin.get(tile);
+					while (tile != ';') {
+						tmp += tile;
+						fin.get(tile);
+					}
+					if (stoi(tmp) > 0) sMP.push_back(1);
+					else sMP.push_back(-1);
+					// Start
+					tmp = "";
+					fin.get(tile);
+					while (tile != ';') {
+						tmp += tile;
+						fin.get(tile);
+					}
+					startMP.push_back(stoi(tmp)*tileSize);
+					// End
+					tmp = "";
+					fin.get(tile);
+					while (tile != ';') {
+						tmp += tile;
+						fin.get(tile);
+					}
+					endMP.push_back(stoi(tmp)*tileSize);
+					// Velocity
+					tmp = "";
+					fin.get(tile);
+					while (tile != ',') {
+						tmp += tile;
+						fin.get(tile);
+					}
+					velocityMP.push_back(stoi(tmp));
+
+					tileID = to_string(PLATFORM_TILE + positionMP.size());
+					positionMP.push_back(i * tileSize);
+					yMP.push_back(j * tileSize);
 				}
 				else {
 					tileID += tile;
@@ -334,7 +384,8 @@ bool TileMap::loadTiles(const string &tilesFile) {
 			int id = stoi(tileID);
 
 			map[j*mapSize.x + i] = id;
-			if (id >= 100) mapType[j*mapSize.x + i] = 100;
+			if (id >= PLATFORM_TILE) mapType[j*mapSize.x + i] = PLATFORM_TILE;
+			else if (id >= CHANGE_MAP_TILE) mapType[j*mapSize.x + i] = CHANGE_MAP_TILE;
 			else if (id > 16) mapType[j*mapSize.x + i] = (id / 8) * 8 + 1;
 			else mapType[j*mapSize.x + i] = 0;
 		}
@@ -386,11 +437,18 @@ bool TileMap::loadFrontTiles(const string &frontTilesFile) {
 		for (int i = 0; i < mapSize.x; i++) {
 			string tileID = "";
 			fin.get(tile);
-			while (tile != ',') {
-				tileID += tile;
+			if (tile == 'm') {
+				frontMap[j*mapSize.x + i] = map[j*mapSize.x + i];
+				cout << "FMP: " << frontMap[j*mapSize.x + i] << endl;
 				fin.get(tile);
 			}
-			frontMap[j*mapSize.x + i] = stoi(tileID);
+			else {
+				while (tile != ',') {
+					tileID += tile;
+					fin.get(tile);
+				}
+				frontMap[j*mapSize.x + i] = stoi(tileID);
+			}
 		}
 		fin.get(tile);
 #ifndef _WIN32
@@ -526,8 +584,8 @@ bool TileMap::loadEnemies(const string &enemiesFile, ShaderProgram &program) {
 
 void TileMap::prepareArrays(ShaderProgram &program) {
 	prepareArraysBackground(program);
-	prepareArraysTiles(map, vaoTileMap, vboTileMap, tileBlockSize, initTile, tilesheet, tilesheetSize, tileTexSize, program);
-	prepareArraysTiles(frontMap, vaoFront, vboFront, frontBlockSize, initFrontTile, frontTileSheet, frontTilesheetSize, frontTexSize, program);
+	prepareArraysTiles(map, vaoTileMap, vboTileMap, tileBlockSize, initTile, tilesheet, tilesheetSize, tileTexSize, program, false);
+	prepareArraysTiles(frontMap, vaoFront, vboFront, frontBlockSize, initFrontTile, frontTileSheet, frontTilesheetSize, frontTexSize, program, true);
 	prepareArraysLights(program);
 }
 
@@ -594,7 +652,7 @@ void TileMap::prepareArraysLights(ShaderProgram &program) {
 }
 
 void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const glm::ivec2 &blockSize, const glm::ivec2 &initPos,
-	const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program) {
+	const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program, const bool &front) {
 
 	int tile, nTiles = 0;
 	glm::vec2 posTile, texCoordTile[2], halfTexel;
@@ -606,7 +664,45 @@ void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const g
 	for (int j = mapSize.y - 1; j >= 0; j--) {
 		for (int i = 0; i < mapSize.x; i++) {
 			tile = tileMap[j * mapSize.x + i];
-			if (tile != 0 && tile < 100) {
+			if (tile >= PLATFORM_TILE) {
+				int MPID = tile - PLATFORM_TILE;
+				tile = typeMP[MPID];
+				int posX = positionMP[MPID];
+				if (!front) {
+					posX += (sMP[MPID] * velocityMP[MPID]);
+					if (posX < startMP[MPID]) {
+						posX = startMP[MPID];
+						sMP[MPID] = 1;
+					}
+					else if (posX > endMP[MPID]) {
+						posX = endMP[MPID];
+						sMP[MPID] = -1;
+					}
+				}
+				positionMP[MPID] = posX;
+				// Non-empty tile
+				nTiles++;
+				posTile = glm::vec2(minCoords.x + posX - initPos.x, minCoords.y + j * tileSize - initPos.y);
+				texCoordTile[0] = glm::vec2(float((tile - 1) % sheetSize.x) / sheetSize.x, float((tile - 1) / sheetSize.y) / sheetSize.y);
+				texCoordTile[1] = texCoordTile[0] + texSize;
+				//texCoordTile[0] += halfTexel;
+				texCoordTile[1] -= halfTexel;
+				// First triangle
+				vertices.push_back(posTile.x); vertices.push_back(posTile.y);
+				vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
+				vertices.push_back(posTile.x + blockSize.x); vertices.push_back(posTile.y);
+				vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[0].y);
+				vertices.push_back(posTile.x + blockSize.x); vertices.push_back(posTile.y + blockSize.y);
+				vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
+				// Second triangle
+				vertices.push_back(posTile.x); vertices.push_back(posTile.y);
+				vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
+				vertices.push_back(posTile.x + blockSize.x); vertices.push_back(posTile.y + blockSize.y);
+				vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
+				vertices.push_back(posTile.x); vertices.push_back(posTile.y + blockSize.y);
+				vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[1].y);
+			}
+			else if (tile != 0 && tile < CHANGE_MAP_TILE) {
 				// Non-empty tile
 				nTiles++;
 				posTile = glm::vec2(minCoords.x + i * tileSize - initPos.x, minCoords.y + j * tileSize - initPos.y);
@@ -656,7 +752,7 @@ bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, g
 	glm::ivec2 check = glm::ivec2(-1, -1);
 	glm::ivec2 newPosition = *position;
 	for (int y = y0; y <= y1; y++) {
-		if (map[y*mapSize.x + x] != 0) {
+		if (map[y*mapSize.x + x] != 0 && mapType[y*mapSize.x + x] < PLATFORM_TILE) {
 			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				newPosition.x = (x + 1)*tileSize;
 				collisionMade = true;
@@ -668,15 +764,33 @@ bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size, g
 				changeState = CHECKPOINT;
 				check = glm::ivec2(x, y);
 			}
-			else if (mapType[y*mapSize.x + x] >= 100 && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] >= CHANGE_MAP_TILE && changeState < DEAD) {
 				changeState = CHANGE_MAP;
-				changeMapInfoId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - CHANGE_MAP_TILE;
 				return true;
 			}
 		}
 	}
 	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 	(*position).x = newPosition.x;
+
+	// Check collision player/platform (up and down)
+	int mpStartX, mpY, mpEndX;
+	y0 = (*position).y / tileSize;
+	y1 = ((*position).y + size.y - 1) / tileSize;
+	for (int i = 0; i < positionMP.size(); i++) {
+		mpStartX = positionMP[i];
+		mpEndX = positionMP[i] + tileSize;
+		mpY = yMP[i] / tileSize;
+		for (int y = y0; y <= y1; y++) {
+			if (mpY == y) {
+				if ((*position).x < mpEndX && ((*position).x + size.x) > mpStartX) {
+					collisionMade = true;
+					if ((*position).x < mpEndX) (*position).x = mpEndX;
+				}
+			}
+		}
+	}
 
 	return collisionMade;
 }
@@ -691,7 +805,7 @@ bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, 
 	glm::ivec2 check = glm::ivec2(-1, -1);
 	glm::ivec2 newPosition = *position;
 	for (int y = y0; y <= y1; y++) {
-		if (map[y*mapSize.x + x] != 0) {
+		if (map[y*mapSize.x + x] != 0 && mapType[y*mapSize.x + x] < PLATFORM_TILE) {
 			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				newPosition.x = x * tileSize - size.x;
 				collisionMade = true;
@@ -704,15 +818,33 @@ bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size, 
 				changeState = CHECKPOINT;
 				check = glm::ivec2(x, y);
 			}
-			else if (mapType[y*mapSize.x + x] >= 100 && changeState < DEAD) {
+			else if (mapType[y*mapSize.x + x] >= CHANGE_MAP_TILE && changeState < DEAD) {
 				changeState = CHANGE_MAP;
-				changeMapInfoId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - CHANGE_MAP_TILE;
 				return true;
 			}
 		}
 	}
 	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 	(*position).x = newPosition.x;
+
+	// Check collision player/platform (up and down)
+	int mpStartX, mpY, mpEndX;
+	y0 = (*position).y / tileSize;
+	y1 = ((*position).y + size.y - 1) / tileSize;
+	for (int i = 0; i < positionMP.size(); i++) {
+		mpStartX = positionMP[i];
+		mpEndX = positionMP[i] + tileSize;
+		mpY = yMP[i] / tileSize;
+		for (int y = y0; y <= y1; y++) {
+			if (mpY == y) {
+				if ((*position).x < mpEndX && ((*position).x + size.x) > mpStartX) {
+					collisionMade = true;
+					if((*position).x > mpStartX) (*position).x = mpStartX - size.x;
+				}
+			}
+		}
+	}
 
 	return collisionMade;
 }
@@ -728,7 +860,7 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, g
 	glm::ivec2 check = glm::ivec2(-1, -1);
 	glm::ivec2 newPosition = *position;
 	for (int x = x0; x <= x1; x++) {
-		if (map[y*mapSize.x + x] != 0) {
+		if (map[y*mapSize.x + x] != 0 && mapType[y*mapSize.x + x] < PLATFORM_TILE) {
 			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				newPosition.y = tileSize * y - size.y;
 				collisionMade = true;
@@ -747,9 +879,9 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, g
 				changeState = CHECKPOINT;
 				check = glm::ivec2(x, y);
 			}
-			else if (mapType[y*mapSize.x + x] >= 100) {
+			else if (mapType[y*mapSize.x + x] >= CHANGE_MAP_TILE) {
 				changeState = CHANGE_MAP;
-				changeMapInfoId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - CHANGE_MAP_TILE;
 				return true;
 			}
 		}
@@ -760,6 +892,26 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, g
 	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 	if (conveyor_step < 0) collisionMoveLeft(*position, size, position, changeState);
 	else if (conveyor_step > 0) collisionMoveRight(*position, size, position, changeState);
+
+	// Check collision player/platform (up and down)
+	int mpStartX, mpY, mpEndX;
+	for (int i = 0; i < positionMP.size(); i++) {
+		mpStartX = positionMP[i];
+		mpY = yMP[i] / tileSize;
+		mpEndX = positionMP[i] + tileSize;
+		if (mpY == (*position).y / tileSize) {
+			if ((*position).x < mpEndX && ((*position).x + size.x) > mpStartX) {
+				collisionMade = true;
+				(*position).x += (sMP[i] * velocityMP[i]);
+				(*position).y = yMP[i];
+
+				if (sMP[i] < 0) collisionMoveLeft(*position, size, position, changeState);
+				else if (sMP[i] > 0) collisionMoveRight(*position, size, position, changeState);
+
+				return true;
+			}
+		}
+	}
 
 	return collisionMade;
 }
@@ -775,7 +927,7 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm
 	glm::ivec2 check = glm::ivec2(-1, -1);
 	glm::ivec2 newPosition = *position;
 	for (int x = x0; x <= x1; x++) {
-		if (map[y*mapSize.x + x] != 0) {
+		if (map[y*mapSize.x + x] != 0 && mapType[y*mapSize.x + x] < PLATFORM_TILE) {
 			if (!collisionMade && mapType[y*mapSize.x + x] != CONTROL_POINT && mapType[y*mapSize.x + x] != ACTIVATED_CONTROL_POINT) {
 				newPosition.y = tileSize * (y + 1);
 				collisionMade = true;
@@ -794,9 +946,9 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm
 				changeState = CHECKPOINT;
 				check = glm::ivec2(x, y);
 			}
-			else if (mapType[y*mapSize.x + x] >= 100) {
+			else if (mapType[y*mapSize.x + x] >= CHANGE_MAP_TILE) {
 				changeState = CHANGE_MAP;
-				changeMapInfoId = map[y*mapSize.x + x] - 100;
+				changeMapInfoId = map[y*mapSize.x + x] - CHANGE_MAP_TILE;
 				return true;
 			}
 		}
@@ -807,6 +959,26 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, glm
 	if (changeState == CHECKPOINT && check.x > 0) activatedCheckpoint = check;
 	if (conveyor_step < 0) collisionMoveLeft(*position, size, position, changeState);
 	else if (conveyor_step > 0) collisionMoveRight(*position, size, position, changeState);
+
+	// Check collision player/platform (up and down)
+	int mpStartX, mpY, mpEndX;
+	for (int i = 0; i < positionMP.size(); i++) {
+		mpStartX = positionMP[i];
+		mpY = yMP[i] / tileSize;
+		mpEndX = positionMP[i] + tileSize;
+		if (mpY == (*position).y / tileSize) {
+			if ((*position).x < mpEndX && ((*position).x + size.x) > mpStartX) {
+				collisionMade = true;
+				(*position).x += (sMP[i] * velocityMP[i]);
+				(*position).y = yMP[i] + tileSize;
+
+				if (sMP[i] < 0) collisionMoveLeft(*position, size, position, changeState);
+				else if (sMP[i] > 0) collisionMoveRight(*position, size, position, changeState);
+
+				return true;
+			}
+		}
+	}
 
 	return collisionMade;
 }

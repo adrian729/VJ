@@ -1,7 +1,7 @@
 #ifndef _PLAYER_INCLUDE
 #define _PLAYER_INCLUDE
 
-
+#include <vector>
 #include "Sprite.h"
 #include "TileMap.h"
 #include "Audio.h"
@@ -39,10 +39,11 @@ public:
 
 	int animationTimer;
 	int playerState;
-	glm::ivec2 posPlayer, checkpoint;
+	glm::ivec2 posPlayer, checkpoint, oldCheckpoint;
 
 private:
 	void changeAnimationSound(int animation, float volume=1.f);
+	void playBass();
 
 	bool jumping;
 	bool mv; // direccio mira pj i si s'ha mogut
@@ -55,7 +56,14 @@ private:
 	Sprite *sprite[2];
 	TileMap *map;
 
-	char *soundAction[6]; // musica lligada a cada accio
+	char *soundAction[7]; // musica lligada a cada accio
+	
+	// Play Bass
+	bool pressed[GLFW_KEY_Z - GLFW_KEY_A + 1];
+	vector<int> noteKeyId;
+	vector<bool> canPlayNote;
+	audio *note;
+	vector<char*> soundBass; // Bass notes
 	audio *actualSound;
 };
 

@@ -19,25 +19,36 @@
 #define FALL_KFPS 6
 #define GRAVITY_KFPS 14
 #define DEATH_KFPS 6
+#define BASS_KFPS 3
 
 
 #define INFINITE_LOOP -1
 
-#define STAND_SOUND_VOLUME .1f
-#define MOVE_SOUND_VOLUME .1f
-#define JUMP_SOUND_VOLUME .1f
-#define FALL_SOUND_VOLUME .1f
-#define GRAVITY_SOUND_VOLUME .1f
-#define DEATH_SOUND_VOLUME .1f
+#define STAND_SOUND_VOLUME .3f
+#define MOVE_SOUND_VOLUME .2f
+#define JUMP_SOUND_VOLUME .2f
+#define FALL_SOUND_VOLUME .3f
+#define GRAVITY_SOUND_VOLUME .2f
+#define DEATH_SOUND_VOLUME .5f
+
+#define GET_CHECKPOINT_SOUND_VOLUME 0.6f
+#define HIT_GROUND_SOUND_VOLUME 0.5f
+
+#define BASS_VOLUME .5f
 
 
 enum PlayerAnimations {
 	STAND_LEFT, STAND_RIGHT, MOVE_LEFT, MOVE_RIGHT, JUMP_LEFT, JUMP_RIGHT,
-	FALL_LEFT, FALL_RIGHT, GRAVITY_LEFT, GRAVITY_RIGHT, DEATH_LEFT, DEATH_RIGHT
+	FALL_LEFT, FALL_RIGHT, GRAVITY_LEFT, GRAVITY_RIGHT, DEATH_LEFT, DEATH_RIGHT,
+	PLAY_BASS
 };
 
 enum PlayerAnimationSounds {
-	STAND, MOVE, JUMP, FALL, CHANGE_GRAVITY_EFFECT, DEATH
+	STAND, MOVE, JUMP, FALL, CHANGE_GRAVITY_EFFECT, DEATH, GET_CHECKPOINT, HIT_GROUND
+};
+
+enum BassNotes {
+	C, C_SHARP, D, D_SHARP, E, F, F_SHARP, G, G_SHARP, A, A_SHARP, B, C_8
 };
 
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
@@ -47,17 +58,15 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 	tileMapDispl = tileMapPos;
 
 	int xcols = 8;
-	int ycols = 8;
+	int ycols = 9;
 
 	spritesheet[0].loadFromFile("images/HarukoSpritesUp.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	spritesheet[1].loadFromFile("images/HarukoSpritesDown.png", TEXTURE_PIXEL_FORMAT_RGBA);
-	//spritesheet[0].loadFromFile("images/HarukoSpritesUp-test.png", TEXTURE_PIXEL_FORMAT_RGBA);
-	//spritesheet[1].loadFromFile("images/HarukoSpritesDown-test.png", TEXTURE_PIXEL_FORMAT_RGBA);
 
 	for (int k = 0; k < 2; k++) {
 		startCollision[k] = glm::ivec3(13, 5, 14);
 		sprite[k] = Sprite::createSprite(glm::ivec2(64, 64), glm::vec2(1.f / xcols, 1.f / ycols), &spritesheet[k], &shaderProgram);
-		sprite[k]->setNumberAnimations(12);
+		sprite[k]->setNumberAnimations(13);
 
 		sprite[k]->setAnimationSpeed(STAND_LEFT, STAND_KFPS);
 		for (int i = 0; i < 4; i++) {
@@ -125,18 +134,56 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 			sprite[k]->addKeyframe(DEATH_RIGHT, glm::vec2(float(i) / xcols, 7.f / ycols));
 		}
 
+		sprite[k]->setAnimationSpeed(PLAY_BASS, BASS_KFPS);
+		for (int i = 0; i < 8; i++) {
+			sprite[k]->addKeyframe(PLAY_BASS, glm::vec2(float(i) / xcols, 8.f / ycols));
+		}
+
 		sprite[k]->changeAnimation(0);
 		sprite[k]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 	}
 
 	soundAction[STAND] = "sound/Actions/silence.wav";
 	soundAction[MOVE] = "sound/Actions/run.wav";
-	soundAction[JUMP] = "sound/Actions/silence.wav";
+	soundAction[JUMP] = "sound/Actions/jump.wav";
 	soundAction[FALL] = "sound/Actions/silence.wav";
-	soundAction[CHANGE_GRAVITY_EFFECT] = "sound/Actions/silence.wav";
-	soundAction[DEATH] = "sound/Actions/silence.wav";
+	soundAction[CHANGE_GRAVITY_EFFECT] = "sound/Actions/changeGravity.wav";
+	soundAction[DEATH] = "sound/Actions/death.wav";
+	soundAction[GET_CHECKPOINT] = "sound/Actions/getCheckpoint.wav";
+	soundAction[HIT_GROUND] = "sound/Actions/hitGround.wav";
 
 	resetVariables();
+
+	// Bass
+	noteKeyId = vector<int>(13);
+	canPlayNote = vector<bool>(13, false);
+	soundBass = vector<char*>(13);
+	noteKeyId[C] = GLFW_KEY_A + 32;
+	soundBass[C] = "sound/Bass/laser1.wav";
+	noteKeyId[C_SHARP] = GLFW_KEY_W + 32;
+	soundBass[C_SHARP] = "sound/Bass/laser1.wav";
+	noteKeyId[D] = GLFW_KEY_S + 32;
+	soundBass[D] = "sound/Bass/laser1.wav";
+	noteKeyId[D_SHARP] = GLFW_KEY_E + 32;
+	soundBass[D_SHARP] = "sound/Bass/laser1.wav";
+	noteKeyId[E] = GLFW_KEY_D + 32;
+	soundBass[E] = "sound/Bass/laser1.wav";
+	noteKeyId[F] = GLFW_KEY_F + 32;
+	soundBass[F] = "sound/Bass/laser1.wav";
+	noteKeyId[F_SHARP] = GLFW_KEY_T + 32;
+	soundBass[F_SHARP] = "sound/Bass/laser1.wav";
+	noteKeyId[G] = GLFW_KEY_G + 32;
+	soundBass[G] = "sound/Bass/laser1.wav";
+	noteKeyId[G_SHARP] = GLFW_KEY_Y + 32;
+	soundBass[G_SHARP] = "sound/Bass/laser1.wav";
+	noteKeyId[A] = GLFW_KEY_H + 32;
+	soundBass[A] = "sound/Bass/laser1.wav";
+	noteKeyId[A_SHARP] = GLFW_KEY_U + 32;
+	soundBass[A_SHARP] = "sound/Bass/laser1.wav";
+	noteKeyId[B] = GLFW_KEY_J + 32;
+	soundBass[B] = "sound/Bass/laser1.wav";
+	noteKeyId[C_8] = GLFW_KEY_K + 32;
+	soundBass[C_8] = "sound/Bass/laser1.wav";
 }
 
 void Player::resetVariables() {
@@ -169,9 +216,38 @@ void Player::changeAnimationSound(int animation, float volume) {
 	Audio::instance().play(actualSound, INFINITE_LOOP, volume);
 }
 
+void Player::playBass() {
+
+	if (Game::instance().getSpecialKey(GLUT_KEY_UP)) {
+		playerState = NONE;
+		return;
+	}
+	for (int i = 0; i < noteKeyId.size(); i++) {
+		if (Game::instance().releaseKey[noteKeyId[i]]) canPlayNote[i] = true;
+		if (Game::instance().getKey(noteKeyId[i]) && canPlayNote[i]) {
+			canPlayNote[i] = false;
+			if (actualSound) Audio::instance().release(actualSound);
+			note = new audio(Audio::instance().createAudio(soundBass[0]));
+			Audio::instance().play(note, 1, BASS_VOLUME);
+		}
+	}
+}
+
 void Player::update(int deltaTime) {
 
 	sprite[currentSpriteSheet]->update(deltaTime);
+
+	if (playerState == BASS) {
+		if (sprite[currentSpriteSheet]->animation() != PLAY_BASS)
+			sprite[currentSpriteSheet]->changeAnimation(PLAY_BASS);
+		Game::instance().bass = true;
+		playBass();
+	}
+	else Game::instance().bass = false;
+
+	// Was Falling
+	bool falling = false;
+	if (sprite[currentSpriteSheet]->animation() == FALL_LEFT || sprite[currentSpriteSheet]->animation() == FALL_RIGHT) falling = true;
 
 	// RESTART
 	if (playerState == RESTART) return;
@@ -252,7 +328,7 @@ void Player::update(int deltaTime) {
 
 	if (gravityStep < GRAVITY_STEP) gravityStep += 0.4f;
 
-	if (Game::instance().getSpecialKey(GLUT_KEY_LEFT)) {
+	if (Game::instance().getSpecialKey(GLUT_KEY_LEFT) && playerState != BASS) {
 		mv = true;
 		left = true;
 		posPlayer.x -= MOVEMENT_STEP;
@@ -263,7 +339,7 @@ void Player::update(int deltaTime) {
 			}
 		}
 	}
-	else if (Game::instance().getSpecialKey(GLUT_KEY_RIGHT)) {
+	else if (Game::instance().getSpecialKey(GLUT_KEY_RIGHT) && playerState != BASS) {
 		mv = true;
 		left = false;
 		posPlayer.x += MOVEMENT_STEP;
@@ -274,7 +350,7 @@ void Player::update(int deltaTime) {
 			}
 		}
 	}
-	else if (!mv) {
+	else if (!mv && playerState != BASS) {
 		if (left && Game::instance().ground && sprite[currentSpriteSheet]->animation() != STAND_LEFT) {
 			sprite[currentSpriteSheet]->changeAnimation(STAND_LEFT);
 			changeAnimationSound(STAND, STAND_SOUND_VOLUME);
@@ -294,7 +370,7 @@ void Player::update(int deltaTime) {
 		mv = false;
 	}
 
-	if (Game::instance().getSpecialKey(GLUT_KEY_UP) && Game::instance().ground) {
+	if (Game::instance().getSpecialKey(GLUT_KEY_UP) && Game::instance().ground && playerState != BASS) {
 		mv = true;
 		jumping = true;
 		jumpAngle = 0;
@@ -363,12 +439,43 @@ void Player::update(int deltaTime) {
 		}
 	}
 
+	if (Game::instance().ground && playerState == NONE && Game::instance().getSpecialKey(GLUT_KEY_DOWN) && playerState != BASS) {
+		playerState = BASS;
+		if (actualSound) Audio::instance().release(actualSound);
+	}
+
 	if (left) posPlayer.x -= startCollision[currentSpriteSheet].x;
 	else posPlayer.x -= startCollision[currentSpriteSheet].p;
 
-	if (g == 1)posPlayer.y -= startCollision[currentSpriteSheet].y;
+	if (g == 1) posPlayer.y -= startCollision[currentSpriteSheet].y;
+
+	int x = posPlayer.x;
+	map->collisionMoveRight(posPlayer, playerSize, &posPlayer, playerState);
+	//int x1 = posPlayer.x;
+	//posPlayer.x = x;
+	//map->collisionMoveLeft(posPlayer, playerSize, &posPlayer, playerState);
+	//int x2 = posPlayer.x;
+	//posPlayer.x = x;
+	//if (abs(x - x1) != 0 && abs(x - x2) != 0) {
+	//	if (abs(x - x1) < abs(x - x2)) posPlayer.x = x1;
+	//	else posPlayer.x = x2;
+	//}
+	//else if (x1 != 0) posPlayer.x = x1;
+	//else if (x2 != 0) posPlayer.x = x2;
 
 	sprite[currentSpriteSheet]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+
+
+	if (oldCheckpoint != checkpoint) {
+		oldCheckpoint = checkpoint;
+		Audio::instance().play(new audio(Audio::instance().createAudio(soundAction[GET_CHECKPOINT])), 1, GET_CHECKPOINT_SOUND_VOLUME);
+	}
+
+	if (falling && sprite[currentSpriteSheet]->animation() != FALL_LEFT && sprite[currentSpriteSheet]->animation() != FALL_RIGHT) {
+		oldCheckpoint = checkpoint;
+		Audio::instance().play(new audio(Audio::instance().createAudio(soundAction[HIT_GROUND])), 1, HIT_GROUND_SOUND_VOLUME);
+	}
+
 }
 
 void Player::render() {
