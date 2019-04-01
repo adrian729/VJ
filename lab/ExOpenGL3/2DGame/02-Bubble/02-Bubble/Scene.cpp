@@ -10,7 +10,7 @@
 #define TRANSITION_TIME 60
 
 #define INFINITE_LOOP -1
-#define MAP_SOUND_VOLUME .06f
+#define MAP_SOUND_VOLUME .05f
 
 #define CANTI_TV 0
 

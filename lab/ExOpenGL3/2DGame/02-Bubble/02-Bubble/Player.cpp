@@ -29,12 +29,12 @@
 #define JUMP_SOUND_VOLUME .2f
 #define FALL_SOUND_VOLUME .3f
 #define GRAVITY_SOUND_VOLUME .2f
-#define DEATH_SOUND_VOLUME .5f
+#define DEATH_SOUND_VOLUME .4f
 
-#define GET_CHECKPOINT_SOUND_VOLUME 0.6f
-#define HIT_GROUND_SOUND_VOLUME 0.5f
+#define GET_CHECKPOINT_SOUND_VOLUME 0.4f
+#define HIT_GROUND_SOUND_VOLUME 0.3f
 
-#define BASS_VOLUME .5f
+#define BASS_VOLUME 1.f
 
 
 enum PlayerAnimations {
@@ -159,31 +159,31 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) {
 	canPlayNote = vector<bool>(13, false);
 	soundBass = vector<char*>(13);
 	noteKeyId[C] = GLFW_KEY_A + 32;
-	soundBass[C] = "sound/Bass/laser1.wav";
+	soundBass[C] = "sound/Bass/C.wav";
 	noteKeyId[C_SHARP] = GLFW_KEY_W + 32;
-	soundBass[C_SHARP] = "sound/Bass/laser1.wav";
+	soundBass[C_SHARP] = "sound/Bass/C_s.wav";
 	noteKeyId[D] = GLFW_KEY_S + 32;
-	soundBass[D] = "sound/Bass/laser1.wav";
+	soundBass[D] = "sound/Bass/D.wav";
 	noteKeyId[D_SHARP] = GLFW_KEY_E + 32;
-	soundBass[D_SHARP] = "sound/Bass/laser1.wav";
+	soundBass[D_SHARP] = "sound/Bass/D_s.wav";
 	noteKeyId[E] = GLFW_KEY_D + 32;
-	soundBass[E] = "sound/Bass/laser1.wav";
+	soundBass[E] = "sound/Bass/E.wav";
 	noteKeyId[F] = GLFW_KEY_F + 32;
-	soundBass[F] = "sound/Bass/laser1.wav";
+	soundBass[F] = "sound/Bass/F.wav";
 	noteKeyId[F_SHARP] = GLFW_KEY_T + 32;
-	soundBass[F_SHARP] = "sound/Bass/laser1.wav";
+	soundBass[F_SHARP] = "sound/Bass/F_s.wav";
 	noteKeyId[G] = GLFW_KEY_G + 32;
-	soundBass[G] = "sound/Bass/laser1.wav";
+	soundBass[G] = "sound/Bass/G.wav";
 	noteKeyId[G_SHARP] = GLFW_KEY_Y + 32;
-	soundBass[G_SHARP] = "sound/Bass/laser1.wav";
+	soundBass[G_SHARP] = "sound/Bass/G_s.wav";
 	noteKeyId[A] = GLFW_KEY_H + 32;
-	soundBass[A] = "sound/Bass/laser1.wav";
+	soundBass[A] = "sound/Bass/A.wav";
 	noteKeyId[A_SHARP] = GLFW_KEY_U + 32;
-	soundBass[A_SHARP] = "sound/Bass/laser1.wav";
+	soundBass[A_SHARP] = "sound/Bass/A_s.wav";
 	noteKeyId[B] = GLFW_KEY_J + 32;
-	soundBass[B] = "sound/Bass/laser1.wav";
+	soundBass[B] = "sound/Bass/B.wav";
 	noteKeyId[C_8] = GLFW_KEY_K + 32;
-	soundBass[C_8] = "sound/Bass/laser1.wav";
+	soundBass[C_8] = "sound/Bass/C_8.wav";
 }
 
 void Player::resetVariables() {
@@ -227,7 +227,7 @@ void Player::playBass() {
 		if (Game::instance().getKey(noteKeyId[i]) && canPlayNote[i]) {
 			canPlayNote[i] = false;
 			if (actualSound) Audio::instance().release(actualSound);
-			note = new audio(Audio::instance().createAudio(soundBass[0]));
+			note = new audio(Audio::instance().createAudio(soundBass[i]));
 			Audio::instance().play(note, 1, BASS_VOLUME);
 		}
 	}
