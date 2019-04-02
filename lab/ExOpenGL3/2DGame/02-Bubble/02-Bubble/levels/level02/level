@@ -1,3 +1,0 @@
-37 27 -- Size of tile map in tiles
-32 -- Tile size
-33 23 -- Level initial player position (tile ID de 0 a size tileMap - 1)

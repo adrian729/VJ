@@ -7,12 +7,19 @@
 #include "Game.h"
 
 
-#define TRANSITION_TIME 60
+#define TRANSITION_TIME 120
 
 #define INFINITE_LOOP -1
+#define MENU_SOUND_VOLUME .1f
+#define INSTRUCTIONS_SOUND_VOLUME .2f
 #define MAP_SOUND_VOLUME .05f
 
+#define FURY_CURY_SOUND_VOLUME .3f
+#define LASER_SOUND_VOLUME .1f
+
 #define CANTI_TV 0
+
+#define INI_MAPS 4
 
 
 Scene::Scene() {
@@ -38,6 +45,7 @@ void Scene::init() {
 	initShaders();
 
 	currentMap = 1;
+	currentLevel = 0;
 	selection = 0;
 	menu = true;
 	instructions = false;
@@ -46,33 +54,53 @@ void Scene::init() {
 	timer = 0;
 
 	// Canti TV
-	map[0] = TileMap::createTileMap("CantiTV", glm::vec2(0, 0), texProgram);
+	map[0] = TileMap::createTileMap("CantiTV", 0, glm::vec2(0, 0), texProgram);
 	sceneSize = map[CANTI_TV]->getSceneSize();
 	tileSize = map[CANTI_TV]->getTileSize();
-	soundMap[0] = "sound/Songs/INTRO-Thank_You_My_Twilight.wav";
+	soundMap[0] = "sound/Songs/16Bits-Bran_New_Lovesong.wav";
 
 	actualSound = new audio(Audio::instance().createAudio(soundMap[0]));
-	Audio::instance().play(actualSound, INFINITE_LOOP, MAP_SOUND_VOLUME);
+	Audio::instance().play(actualSound, INFINITE_LOOP, MENU_SOUND_VOLUME);
 
 	// Menu
 	// Select Start
-	map[1] = TileMap::createTileMap("MenuStart", glm::vec2(0, 0), texProgram);
+	map[1] = TileMap::createTileMap("MenuStart", 0, glm::vec2(0, 0), texProgram);
 	// Select Instructions
-	map[2] = TileMap::createTileMap("MenuInstructions", glm::vec2(0, 0), texProgram);
+	map[2] = TileMap::createTileMap("MenuInstructions", 0, glm::vec2(0, 0), texProgram);
 
 	// Instructions
-	map[3] = TileMap::createTileMap("Instructions", glm::vec2(0, 0), texProgram);
+	map[3] = TileMap::createTileMap("Instructions", 0, glm::vec2(0, 0), texProgram);
+	soundMap[3] = "sound/Songs/8Bits-Ride_On_A_Shooting_Star.mp3";
 
 
-	checkpointMap = 4;
-	// Level 1
-	map[4] = TileMap::createTileMap("level00", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
-	soundMap[4] = "sound/Songs/Little_Busters.wav";
+	// Scene 1
 
-	//map[1] = TileMap::createTileMap("level01", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
-	//soundMap[1] = "sound/Songs/Little_Busters.wav";
-	//map[2] = TileMap::createTileMap("level02", glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
-	//soundMap[2] = "sound/Songs/Thank_You_My_Twilight.wav";
+	changeLevel = false;
+
+	// Level 0 (4)
+	int lvl0 = 0 + INI_MAPS;
+	checkpointMap = lvl0 + 1; // level 0 map 1
+	map[lvl0] = TileMap::createTileMap("lvl0", lvl0, glm::vec2(SCREEN_X, SCREEN_Y), texProgram); // transition map
+	soundMap[lvl0] = "sound/Songs/Little_Busters.mp3";
+	// map 1 (5)
+	//map[lvl0 + 1] = TileMap::createTileMap("lvl0m1", lvl0, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	map[lvl0 + 1] = TileMap::createTileMap("lvl1m2", lvl0 + 3, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	// map 2 (6)
+	map[lvl0 + 2] = TileMap::createTileMap("lvl0m2", lvl0, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+
+	// Level 1 (7)
+	int lvl1 = lvl0 + 2 + 1;
+	map[lvl1] = TileMap::createTileMap("lvl1", lvl1, glm::vec2(SCREEN_X, SCREEN_Y), texProgram); // transition map
+	soundMap[lvl1] = "sound/Songs/One_Life.mp3";
+	// map 1 (8)
+	map[lvl1 + 1] = TileMap::createTileMap("lvl1m1", lvl1, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	// map 2 (9)
+	map[lvl1 + 2] = TileMap::createTileMap("lvl1m2", lvl1, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+
+	// Level 2 ()
+
+
+
 
 	player = new Player();
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
@@ -98,15 +126,33 @@ void Scene::update(int deltaTime) {
 		if (Game::instance().getKey(32) && canPressSpace) {
 			canPressSpace = false;
 			menu = false;
+
+			if (actualSound) Audio::instance().release(actualSound);
+			Audio::instance().play(new audio(Audio::instance().createAudio("sound/FuryCury.wav")), 1, FURY_CURY_SOUND_VOLUME);
+
 			if (selection == 0) {
-				currentMap = 4;
-				Audio::instance().release(actualSound);
-				actualSound = new audio(Audio::instance().createAudio(soundMap[currentMap]));
+
+				changeMap = true;
+				timer = 2;
+				currentLevel = INI_MAPS; // lvl0
+
+				changeLevel = false;
+
+				actualSound = new audio(Audio::instance().createAudio(soundMap[currentLevel]));
 				Audio::instance().play(actualSound, INFINITE_LOOP, MAP_SOUND_VOLUME);
+
+				// Mapa "transicio"
+				//transitionMap = currentLevel + 1; // guardem a quin mapa anirem
+				transitionMap = currentLevel + 1; // guardem a quin mapa anirem
+				currentMap = currentLevel; // mapa "transicio"
+
 			}
 			else {
 				instructions = true;
 				currentMap = 3;
+
+				actualSound = new audio(Audio::instance().createAudio(soundMap[3]));
+				Audio::instance().play(actualSound, INFINITE_LOOP, INSTRUCTIONS_SOUND_VOLUME);
 			}
 			return;
 		}
@@ -118,6 +164,8 @@ void Scene::update(int deltaTime) {
 			canPress[GLUT_KEY_RIGHT] = false;
 			selection = (selection + 1) % 2;
 			currentMap = selection + 1;
+
+			Audio::instance().play(new audio(Audio::instance().createAudio("sound/laser1.wav")), 1, LASER_SOUND_VOLUME);
 		}
 		else if ((Game::instance().getSpecialKey(GLUT_KEY_DOWN) && canPress[GLUT_KEY_DOWN])
 			|| (Game::instance().getSpecialKey(GLUT_KEY_LEFT) && canPress[GLUT_KEY_LEFT])) {
@@ -126,6 +174,8 @@ void Scene::update(int deltaTime) {
 			canPress[GLUT_KEY_LEFT] = false;
 			selection = (selection - 1 + 2) % 2;
 			currentMap = selection + 1;
+
+			Audio::instance().play(new audio(Audio::instance().createAudio("sound/laser1.wav")), 1, LASER_SOUND_VOLUME);
 		}
 	}
 	// Instructions
@@ -138,6 +188,12 @@ void Scene::update(int deltaTime) {
 			instructions = false;
 			selection = 0;
 			currentMap = 1;
+
+			if (actualSound) Audio::instance().release(actualSound);
+			Audio::instance().play(new audio(Audio::instance().createAudio("sound/FuryCury.wav")), 1, FURY_CURY_SOUND_VOLUME);
+
+			actualSound = new audio(Audio::instance().createAudio(soundMap[0]));
+			Audio::instance().play(actualSound, INFINITE_LOOP, MENU_SOUND_VOLUME);
 		}
 	}
 	// Canviar de mapa
@@ -151,15 +207,21 @@ void Scene::update(int deltaTime) {
 			else if (player->playerState == CHANGE_MAP) {
 				nextMap = map[currentMap]->changeMapInfo[map[currentMap]->changeMapInfoId].r;
 			}
-			cout << "HEI " << nextMap << endl;
-			Audio::instance().release(actualSound);
-			actualSound = new audio(Audio::instance().createAudio(soundMap[nextMap]));
-			Audio::instance().play(actualSound, INFINITE_LOOP, MAP_SOUND_VOLUME);
+			if (changeLevel) {
+				changeLevel = false;
+				if (actualSound) Audio::instance().release(actualSound);
+				actualSound = new audio(Audio::instance().createAudio(soundMap[currentLevel]));
+				Audio::instance().play(actualSound, INFINITE_LOOP, MAP_SOUND_VOLUME);
+			}
+			else {
+				timer = TRANSITION_TIME;
+			}
 			// Mapa "transicio"
 			transitionMap = currentMap; // guardem a quin mapa estavem
-			currentMap = 0; // mapa "transicio"
+			currentMap = currentLevel; // mapa "transicio"
 		}
-		else if (timer >= TRANSITION_TIME) {
+
+		if (timer >= TRANSITION_TIME) {
 			currentMap = transitionMap;
 			transitionMap = 0;
 		}
@@ -171,6 +233,10 @@ void Scene::update(int deltaTime) {
 			if (!changeMap && currentMap != 0 && newMap != currentMap) {
 				changeMap = true;
 				timer = 0;
+				if (map[currentMap]->level != map[newMap]->level) {
+					changeLevel = true;
+					currentLevel = map[newMap]->level;
+				}
 			}
 			else {
 				changeMap = false;
@@ -183,9 +249,14 @@ void Scene::update(int deltaTime) {
 		}
 		else if (player->playerState == CHANGE_MAP) {
 			int newMap = map[currentMap]->changeMapInfo[map[currentMap]->changeMapInfoId].r;
+			cout << "newMap" << endl;
 			if (!changeMap && currentMap != 0 && newMap != currentMap) {
 				changeMap = true;
 				timer = 0;
+				if (map[currentMap]->level != map[newMap]->level) {
+					changeLevel = true;
+					currentLevel = map[newMap]->level;
+				}
 			}
 			else {
 				timer = 0;
@@ -206,6 +277,7 @@ void Scene::update(int deltaTime) {
 		}
 		player->update(deltaTime);
 	}
+
 	Audio::instance().update();
 	map[currentMap]->update(deltaTime, texProgram,
 		player->posPlayer, player->getPlayerSize(),
@@ -223,7 +295,7 @@ void Scene::render() {
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map[currentMap]->renderBackground();
 	// Menu
-	if (!menu && !instructions) {
+	if (!menu && !instructions && transitionMap == 0) {
 		map[currentMap]->render();
 		map[currentMap]->renderEnemies();
 		player->render();

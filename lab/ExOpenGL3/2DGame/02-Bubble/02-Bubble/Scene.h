@@ -29,7 +29,7 @@ public:
 	void update(int deltaTime);
 	void render();
 
-	bool changeMap, menu, instructions;
+	bool changeMap, menu, instructions, changeLevel;
 	int selection;
 	int timer;
 
@@ -38,7 +38,7 @@ private:
 	void initShaders();
 
 private:
-	int currentMap;
+	int currentMap, currentLevel;
 	int transitionMap;
 	TileMap *map[10];
 	char *soundMap[10]; // musica lligada a cada mapa

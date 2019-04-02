@@ -20,9 +20,9 @@ class TileMap {
 
 public:
 	// Tile maps can only be created inside an OpenGL context
-	static TileMap *createTileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program);
+	static TileMap *createTileMap(const string &levelName, const int &level, const glm::vec2 &minCoords, ShaderProgram &program);
 
-	TileMap(const string &levelName, const glm::vec2 &minCoords, ShaderProgram &program);
+	TileMap(const string &levelName, const int &level, const glm::vec2 &minCoords, ShaderProgram &program);
 	~TileMap();
 
 	void update(int deltaTime, ShaderProgram &program,
@@ -48,7 +48,8 @@ public:
 
 	int animationCount;
 	int changeMapInfoId;
-	vector<glm::ivec3> changeMapInfo; // mapID, tile X, tile Y
+	int level;
+	vector<glm::ivec3> changeMapInfo; // mapID, tile X, tile Y, level
 	glm::ivec2 activatedCheckpoint;
 
 private:

@@ -9,9 +9,9 @@
 
 #define JUMP_ANGLE_STEP 5
 #define JUMP_HEIGHT 96
-#define FALL_STEP 10
-#define MOVEMENT_STEP 4
-#define GRAVITY_STEP 20
+#define FALL_STEP 12
+#define MOVEMENT_STEP 5
+#define GRAVITY_STEP 22
 
 #define STAND_KFPS 6
 #define MOVE_KFPS 18
@@ -297,14 +297,15 @@ void Player::update(int deltaTime) {
 		currentSpriteSheet = 1;
 	}
 
+	// Calculate size to correct player position (player collisions).
 	glm::vec2 playerSize = sprite[currentSpriteSheet]->size;
 	playerSize.x -= (startCollision[currentSpriteSheet].x + startCollision[currentSpriteSheet].p);
 	playerSize.y -= startCollision[currentSpriteSheet].y;
-
 	if (g == 1) posPlayer.y += startCollision[currentSpriteSheet].y;
 
 	// Changing gravity
 	if (playerState == CHANGING_GRAVITY) {
+		// Correct player position (player collisions). 
 		if (g == 1) posPlayer.y -= g * startCollision[currentSpriteSheet].y;
 		if (left && sprite[currentSpriteSheet]->animation() != GRAVITY_LEFT) {
 			sprite[currentSpriteSheet]->changeAnimation(GRAVITY_LEFT);
@@ -326,7 +327,7 @@ void Player::update(int deltaTime) {
 		return;
 	}
 
-	if (gravityStep < GRAVITY_STEP) gravityStep += 0.4f;
+	if (gravityStep < GRAVITY_STEP) gravityStep += 0.5f;
 
 	if (Game::instance().getSpecialKey(GLUT_KEY_LEFT) && playerState != BASS) {
 		mv = true;
@@ -361,6 +362,7 @@ void Player::update(int deltaTime) {
 		}
 	}
 
+	// Correct player position (player collisions).
 	if (left) posPlayer.x += startCollision[currentSpriteSheet].x;
 	else posPlayer.x += startCollision[currentSpriteSheet].p;
 	// Si s'esta movent, mirem si hi ha colisio esquerra o dreta (per corretgir) i reiniciem mv
@@ -444,24 +446,13 @@ void Player::update(int deltaTime) {
 		if (actualSound) Audio::instance().release(actualSound);
 	}
 
+	map->collisionMoveRight(posPlayer, playerSize, &posPlayer, playerState);
+	map->collisionMoveLeft(posPlayer, playerSize, &posPlayer, playerState);
+
+	// Correct player position (player collisions).
 	if (left) posPlayer.x -= startCollision[currentSpriteSheet].x;
 	else posPlayer.x -= startCollision[currentSpriteSheet].p;
-
 	if (g == 1) posPlayer.y -= startCollision[currentSpriteSheet].y;
-
-	int x = posPlayer.x;
-	map->collisionMoveRight(posPlayer, playerSize, &posPlayer, playerState);
-	//int x1 = posPlayer.x;
-	//posPlayer.x = x;
-	//map->collisionMoveLeft(posPlayer, playerSize, &posPlayer, playerState);
-	//int x2 = posPlayer.x;
-	//posPlayer.x = x;
-	//if (abs(x - x1) != 0 && abs(x - x2) != 0) {
-	//	if (abs(x - x1) < abs(x - x2)) posPlayer.x = x1;
-	//	else posPlayer.x = x2;
-	//}
-	//else if (x1 != 0) posPlayer.x = x1;
-	//else if (x2 != 0) posPlayer.x = x2;
 
 	sprite[currentSpriteSheet]->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 

@@ -12,7 +12,8 @@ enum EnemyAnimations {
 
 
 enum EnemyType {
-	ARM, BIG_ARM, ROBOT_1, ROBOT_2, ROBOT_3
+	
+	ARM, BIG_ARM, ROBOT_1, ROBOT_2, ROBOT_3, BIPEDO_1, BIPEDO_2, BIPEDO_3
 };
 
 
@@ -31,8 +32,8 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 
 	float col = 0.f;
 
-	int numEnemies = 5;
-	if (type == ARM) {
+	int numEnemies = 8;
+	if (type == ARM) { // (0)
 		velocity = 2;
 		enemySize = glm::ivec2(64, 64);
 		startCollision[0] = glm::ivec3(20, 18, 20);
@@ -40,7 +41,7 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 		col = 0.f;
 		kfps = 6;
 	}
-	else if (type == BIG_ARM) {
+	else if (type == BIG_ARM) { // (1)
 		velocity = 2;
 		enemySize = glm::ivec2(128, 128);
 		startCollision[0] = glm::ivec3(40, 36, 40);
@@ -48,15 +49,15 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 		col = 0.f;
 		kfps = 6;
 	}
-	else if (type == ROBOT_1) {
-		velocity = 2;
+	else if (type == ROBOT_1) { // (2)
+		velocity = 4;
 		enemySize = glm::ivec2(64, 64);
 		startCollision[0] = glm::ivec3(9, 14, 9);
 		startCollision[1] = glm::ivec3(9, 14, 9);
 		col = 1.f;
 		kfps = 10;
 	}
-	else if (type == ROBOT_2) {
+	else if (type == ROBOT_2) { // (3)
 		velocity = 5;
 		enemySize = glm::ivec2(64, 64);
 		startCollision[0] = glm::ivec3(7, 14, 7);
@@ -64,7 +65,7 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 		col = 2.f;
 		kfps = 6;
 	}
-	else if (type == ROBOT_3) {
+	else if (type == ROBOT_3) { // (4)
 		velocity = 1;
 		enemySize = glm::ivec2(64, 64);
 		startCollision[0] = glm::ivec3(6, 34, 6);
@@ -72,7 +73,30 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 		col = 3.f;
 		kfps = 6;
 	}
-
+	else if (type == BIPEDO_1) { // (5)
+		velocity = 4;
+		enemySize = glm::ivec2(64, 64);
+		startCollision[0] = glm::ivec3(12, 0, 12);
+		startCollision[1] = glm::ivec3(12, 0, 12);
+		col = 4.f;
+		kfps = 8;
+	}
+	else if (type == BIPEDO_2) { // (6)
+		velocity = 3;
+		enemySize = glm::ivec2(128, 128);
+		startCollision[0] = glm::ivec3(7, 15, 7);
+		startCollision[1] = glm::ivec3(7, 15, 7);
+		col = 5.f;
+		kfps = 8;
+	}
+	else if (type == BIPEDO_3) { // (7)
+		velocity = 6;
+		enemySize = glm::ivec2(64, 64);
+		startCollision[0] = glm::ivec3(6, 16, 6);
+		startCollision[1] = glm::ivec3(6, 16, 6);
+		col = 6.f;
+		kfps = 10;
+	}
 
 	horizontal = direction;
 	startPosition = posStart - enemySize;
