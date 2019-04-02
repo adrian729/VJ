@@ -8,6 +8,7 @@
 #include "ShaderProgram.h"
 #include "Globals.h"
 #include "Enemy.h"
+#include "Sprite.h"
 
 
 // Class Tilemap is capable of loading a tile map from a text file in a very
@@ -29,9 +30,9 @@ public:
 		const glm::ivec2 &playerPos, const glm::ivec2 &playerSize,
 		const glm::ivec3 &playerCollision, const bool &playerLeft,
 		int *playerState, const bool &g);
-	void renderBackground() const;
-	void render() const;
-	void renderFront() const;
+	void renderBackground();
+	void render();
+	void renderFront();
 	void renderLights() const;
 	void renderEnemies() const;
 	void free();
@@ -61,7 +62,7 @@ private:
 	bool loadEnemies(const string &enemiesFile, ShaderProgram &program);
 	void prepareArrays(ShaderProgram &program);
 	void prepareArraysBackground(ShaderProgram &program);
-	void prepareArraysLights(ShaderProgram &program);
+	//void prepareArraysLights(ShaderProgram &program);
 	void prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const glm::ivec2 &blockSize, const glm::ivec2 &initPos,
 		const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program, const bool &front);
 

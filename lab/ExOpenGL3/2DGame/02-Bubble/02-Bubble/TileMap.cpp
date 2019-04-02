@@ -71,7 +71,13 @@ void TileMap::update(int deltaTime, ShaderProgram &program,
 			}
 		}
 	}
-	prepareArrays(program);
+	glGenVertexArrays(1, &vaoTileMap);
+	glGenBuffers(1, &vboTileMap);
+	glGenVertexArrays(1, &vaoFront);
+	glGenBuffers(1, &vboFront);
+	prepareArraysTiles(map, vaoTileMap, vboTileMap, tileBlockSize, initTile, tilesheet, tilesheetSize, tileTexSize, program, false);
+	prepareArraysTiles(frontMap, vaoFront, vboFront, frontBlockSize, initFrontTile, frontTileSheet, frontTilesheetSize, frontTexSize, program, true);
+	
 
 	int playerStartX, playerStartY, playerEndX, playerEndY;
 	playerStartX = playerPos.x;
@@ -128,7 +134,7 @@ void TileMap::update(int deltaTime, ShaderProgram &program,
 	}
 }
 
-void TileMap::renderBackground() const {
+void TileMap::renderBackground() {
 	glEnable(GL_TEXTURE_2D);
 	backgroundImage.use();
 	glBindVertexArray(vaoBack);
@@ -136,9 +142,11 @@ void TileMap::renderBackground() const {
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glDisable(GL_TEXTURE_2D);
+	//glGenVertexArrays(1, &vaoBack);
+	//glGenBuffers(1, &vboBack);
 }
 
-void TileMap::render() const {
+void TileMap::render() {
 	glEnable(GL_TEXTURE_2D);
 	tilesheet.use();
 	glBindVertexArray(vaoTileMap);
@@ -146,9 +154,12 @@ void TileMap::render() const {
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * mapSize.x * mapSize.y);
 	glDisable(GL_TEXTURE_2D);
+	glDeleteBuffers(1, &vaoTileMap);
+	//glGenVertexArrays(1, &vaoTileMap);
+	//glGenBuffers(1, &vboTileMap);
 }
 
-void TileMap::renderFront() const {
+void TileMap::renderFront() {
 	glEnable(GL_TEXTURE_2D);
 	frontTileSheet.use();
 	glBindVertexArray(vaoFront);
@@ -156,17 +167,20 @@ void TileMap::renderFront() const {
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * mapSize.x * mapSize.y);
 	glDisable(GL_TEXTURE_2D);
+	glDeleteBuffers(1, &vaoFront);
+	//glGenVertexArrays(1, &vaoFront);
+	//glGenBuffers(1, &vboFront);
 }
 
 void TileMap::renderLights() const {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-	lightsImage.use();
-	glBindVertexArray(vaoLights);
-	glEnableVertexAttribArray(posLocation);
-	glEnableVertexAttribArray(texCoordLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glDisable(GL_BLEND);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
+	//lightsImage.use();
+	//glBindVertexArray(vaoLights);
+	//glEnableVertexAttribArray(posLocation);
+	//glEnableVertexAttribArray(texCoordLocation);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDisable(GL_BLEND);
 }
 
 void TileMap::renderEnemies() const {
@@ -580,10 +594,19 @@ bool TileMap::loadEnemies(const string &enemiesFile, ShaderProgram &program) {
 }
 
 void TileMap::prepareArrays(ShaderProgram &program) {
+
+	glGenVertexArrays(1, &vaoBack);
+	glGenBuffers(1, &vboBack);
+	glGenVertexArrays(1, &vaoTileMap);
+	glGenBuffers(1, &vboTileMap);
+	glGenVertexArrays(1, &vaoFront);
+	glGenBuffers(1, &vboFront);
+
 	prepareArraysBackground(program);
 	prepareArraysTiles(map, vaoTileMap, vboTileMap, tileBlockSize, initTile, tilesheet, tilesheetSize, tileTexSize, program, false);
 	prepareArraysTiles(frontMap, vaoFront, vboFront, frontBlockSize, initFrontTile, frontTileSheet, frontTilesheetSize, frontTexSize, program, true);
-	prepareArraysLights(program);
+
+	//prepareArraysLights(program);
 }
 
 void TileMap::prepareArraysBackground(ShaderProgram &program) {
@@ -617,36 +640,36 @@ void TileMap::prepareArraysBackground(ShaderProgram &program) {
 	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4 * sizeof(float), (void *)(2 * sizeof(float)));
 }
 
-void TileMap::prepareArraysLights(ShaderProgram &program) {
-	glm::vec2 pos, texCoordTile[2];
-	vector<float> vertices;
-
-	pos = glm::vec2(minCoords.x, minCoords.y);
-	texCoordTile[0] = glm::vec2(0.f);
-	texCoordTile[1] = glm::vec2(1.f);
-	// First triangle
-	vertices.push_back(minCoords.x); vertices.push_back(minCoords.y);
-	vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
-	vertices.push_back(minCoords.x + mapPixels.x); vertices.push_back(minCoords.y);
-	vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[0].y);
-	vertices.push_back(minCoords.x + mapPixels.x); vertices.push_back(minCoords.y + mapPixels.y);
-	vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
-	// Second triangle
-	vertices.push_back(minCoords.x); vertices.push_back(minCoords.y);
-	vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
-	vertices.push_back(minCoords.x + mapPixels.x); vertices.push_back(minCoords.y + mapPixels.y);
-	vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
-	vertices.push_back(minCoords.x); vertices.push_back(minCoords.y + mapPixels.y);
-	vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[1].y);
-
-	glGenVertexArrays(1, &vaoLights);
-	glBindVertexArray(vaoLights);
-	glGenBuffers(1, &vboLights);
-	glBindBuffer(GL_ARRAY_BUFFER, vboLights);
-	glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-	posLocation = program.bindVertexAttribute("position", 2, 4 * sizeof(float), 0);
-	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4 * sizeof(float), (void *)(2 * sizeof(float)));
-}
+//void TileMap::prepareArraysLights(ShaderProgram &program) {
+//	glm::vec2 pos, texCoordTile[2];
+//	vector<float> vertices;
+//
+//	pos = glm::vec2(minCoords.x, minCoords.y);
+//	texCoordTile[0] = glm::vec2(0.f);
+//	texCoordTile[1] = glm::vec2(1.f);
+//	// First triangle
+//	vertices.push_back(minCoords.x); vertices.push_back(minCoords.y);
+//	vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
+//	vertices.push_back(minCoords.x + mapPixels.x); vertices.push_back(minCoords.y);
+//	vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[0].y);
+//	vertices.push_back(minCoords.x + mapPixels.x); vertices.push_back(minCoords.y + mapPixels.y);
+//	vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
+//	// Second triangle
+//	vertices.push_back(minCoords.x); vertices.push_back(minCoords.y);
+//	vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
+//	vertices.push_back(minCoords.x + mapPixels.x); vertices.push_back(minCoords.y + mapPixels.y);
+//	vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
+//	vertices.push_back(minCoords.x); vertices.push_back(minCoords.y + mapPixels.y);
+//	vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[1].y);
+//
+//	glGenVertexArrays(1, &vaoLights);
+//	glBindVertexArray(vaoLights);
+//	glGenBuffers(1, &vboLights);
+//	glBindBuffer(GL_ARRAY_BUFFER, vboLights);
+//	glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+//	posLocation = program.bindVertexAttribute("position", 2, 4 * sizeof(float), 0);
+//	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+//}
 
 void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const glm::ivec2 &blockSize, const glm::ivec2 &initPos,
 	const Texture &sheet, const glm::ivec2 &sheetSize, const glm::vec2 &texSize, ShaderProgram &program, const bool &front) {
@@ -724,7 +747,6 @@ void TileMap::prepareArraysTiles(int *tileMap, GLuint &vao, GLuint &vbo, const g
 			}
 		}
 	}
-
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);

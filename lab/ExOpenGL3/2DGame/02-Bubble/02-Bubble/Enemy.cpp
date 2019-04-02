@@ -58,7 +58,7 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 		kfps = 10;
 	}
 	else if (type == ROBOT_2) { // (3)
-		velocity = 5;
+		velocity = 6;
 		enemySize = glm::ivec2(64, 64);
 		startCollision[0] = glm::ivec3(7, 14, 7);
 		startCollision[1] = glm::ivec3(7, 14, 7);
@@ -82,8 +82,8 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 		kfps = 8;
 	}
 	else if (type == BIPEDO_2) { // (6)
-		velocity = 3;
-		enemySize = glm::ivec2(128, 128);
+		velocity = 5;
+		enemySize = glm::ivec2(32, 32);
 		startCollision[0] = glm::ivec3(7, 15, 7);
 		startCollision[1] = glm::ivec3(7, 15, 7);
 		col = 5.f;
