@@ -13,7 +13,7 @@ enum EnemyAnimations {
 
 enum EnemyType {
 	
-	ARM, BIG_ARM, ROBOT_1, ROBOT_2, ROBOT_3, BIPEDO_1, BIPEDO_2, BIPEDO_3
+	ARM, BIG_ARM, ROBOT_1, ROBOT_2, ROBOT_3, BIPEDO_1, BIPEDO_2, BIPEDO_3, SPHERE, TOSTADORA_1, TOSTADORA_2
 };
 
 
@@ -95,6 +95,30 @@ void Enemy::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram, con
 		startCollision[0] = glm::ivec3(6, 16, 6);
 		startCollision[1] = glm::ivec3(6, 16, 6);
 		col = 6.f;
+		kfps = 10;
+	}
+	else if (type == SPHERE) { // (8)
+		velocity = 6;
+		enemySize = glm::ivec2(64, 64);
+		startCollision[0] = glm::ivec3(6, 16, 6);
+		startCollision[1] = glm::ivec3(6, 16, 6);
+		col = 7.f;
+		kfps = 10;
+	}
+	else if (type == TOSTADORA_1) { // (9)
+		velocity = 4;
+		enemySize = glm::ivec2(32, 32);
+		startCollision[0] = glm::ivec3(6, 16, 6);
+		startCollision[1] = glm::ivec3(6, 16, 6);
+		col = 8.f;
+		kfps = 10;
+	}
+	else if (type == TOSTADORA_2) { // (10)
+		velocity = 5;
+		enemySize = glm::ivec2(32, 32);
+		startCollision[0] = glm::ivec3(6, 16, 6);
+		startCollision[1] = glm::ivec3(6, 16, 6);
+		col = 9.f;
 		kfps = 10;
 	}
 

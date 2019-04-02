@@ -5,7 +5,7 @@
 
 
 //Remove console (only works in Visual Studio)
-//#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
+#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 
 
 static int prevTime;
@@ -14,8 +14,7 @@ static Game game; // This object represents our whole game
 
 // If a key is pressed this callback is called
 
-static void keyboardDownCallback(unsigned char key, int x, int y)
-{
+static void keyboardDownCallback(unsigned char key, int x, int y) {
 	Game::instance().keyPressed(key);
 }
 

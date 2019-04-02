@@ -71,6 +71,7 @@ void TileMap::update(int deltaTime, ShaderProgram &program,
 			}
 		}
 	}
+
 	glGenVertexArrays(1, &vaoTileMap);
 	glGenBuffers(1, &vboTileMap);
 	glGenVertexArrays(1, &vaoFront);
@@ -78,7 +79,6 @@ void TileMap::update(int deltaTime, ShaderProgram &program,
 	prepareArraysTiles(map, vaoTileMap, vboTileMap, tileBlockSize, initTile, tilesheet, tilesheetSize, tileTexSize, program, false);
 	prepareArraysTiles(frontMap, vaoFront, vboFront, frontBlockSize, initFrontTile, frontTileSheet, frontTilesheetSize, frontTexSize, program, true);
 	
-
 	int playerStartX, playerStartY, playerEndX, playerEndY;
 	playerStartX = playerPos.x;
 	playerEndX = playerStartX + playerSize.x;
@@ -154,7 +154,7 @@ void TileMap::render() {
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * mapSize.x * mapSize.y);
 	glDisable(GL_TEXTURE_2D);
-	glDeleteBuffers(1, &vaoTileMap);
+	//glDeleteBuffers(1, &vaoTileMap);
 	//glGenVertexArrays(1, &vaoTileMap);
 	//glGenBuffers(1, &vboTileMap);
 }
@@ -167,7 +167,7 @@ void TileMap::renderFront() {
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * mapSize.x * mapSize.y);
 	glDisable(GL_TEXTURE_2D);
-	glDeleteBuffers(1, &vaoFront);
+	//glDeleteBuffers(1, &vaoFront);
 	//glGenVertexArrays(1, &vaoFront);
 	//glGenBuffers(1, &vboFront);
 }

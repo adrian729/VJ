@@ -21,6 +21,8 @@
 
 #define INI_MAPS 4
 
+#define CREDITS 22
+
 
 Scene::Scene() {
 	for (int i = 0; i < sizeof(map) / sizeof(int); i++) {
@@ -84,7 +86,7 @@ void Scene::init() {
 	soundMap[lvl0] = "sound/Songs/Little_Busters.mp3";
 	// map 1 (5)
 	map[lvl0 + 1] = TileMap::createTileMap("lvl0m1", lvl0, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
-	//map[lvl0 + 1] = TileMap::createTileMap("lvl3m4", 13, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
+	//map[lvl0 + 1] = TileMap::createTileMap("lvl5m1", 20, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 	// map 2 (6)
 	map[lvl0 + 2] = TileMap::createTileMap("lvl0m2", lvl0, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 
@@ -129,8 +131,17 @@ void Scene::init() {
 	// map 1 (19)
 	map[lvl4 + 1] = TileMap::createTileMap("lvl4m1", lvl4, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 
+	// Level 5 (20)
+	int lvl5 = lvl4 + 1 + 1;
+	map[lvl5] = TileMap::createTileMap("lvl5", lvl5, glm::vec2(SCREEN_X, SCREEN_Y), texProgram); // transition map
+	soundMap[lvl5] = "sound/Songs/Thank_You_My_Twilight.mp3";
+	// map 1 (21)
+	map[lvl5 + 1] = TileMap::createTileMap("lvl5m1", lvl5, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
 
-
+	// Credits (22)
+	int credits = lvl5 + 1 + 1;
+	map[credits] = TileMap::createTileMap("credits", credits, glm::vec2(SCREEN_X, SCREEN_Y), texProgram); // transition map
+	soundMap[credits] = "sound/Songs/8Bits-Little_Busters.mp3";
 
 	player = new Player();
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
@@ -252,8 +263,6 @@ void Scene::update(int deltaTime) {
 			currentMap = currentLevel; // mapa "transicio"
 		}
 
-		// map[transitionMap]->free();
-
 		if (timer >= TRANSITION_TIME) {
 			currentMap = transitionMap;
 			transitionMap = 0;
@@ -327,7 +336,7 @@ void Scene::render() {
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map[currentMap]->renderBackground();
 	// Menu
-	if (!menu && !instructions && transitionMap == 0) {
+	if (!menu && !instructions && transitionMap == 0 && currentMap != CREDITS) {
 		map[currentMap]->render();
 		map[currentMap]->renderEnemies();
 		player->render();

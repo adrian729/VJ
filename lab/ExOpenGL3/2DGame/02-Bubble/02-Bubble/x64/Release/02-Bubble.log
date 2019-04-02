@@ -1,0 +1,17 @@
+﻿  Audio.cpp
+d:\temp\vj\lab\exopengl3\2dgame\02-bubble\02-bubble\audio.h(3): fatal error C1083: Cannot open include file: 'fmod.hpp': No such file or directory
+  Game.cpp
+d:\temp\vj\lab\exopengl3\2dgame\02-bubble\02-bubble\audio.h(3): fatal error C1083: Cannot open include file: 'fmod.hpp': No such file or directory
+  main.cpp
+d:\temp\vj\lab\exopengl3\2dgame\02-bubble\02-bubble\audio.h(3): fatal error C1083: Cannot open include file: 'fmod.hpp': No such file or directory
+  Player.cpp
+d:\temp\vj\lab\exopengl3\2dgame\02-bubble\02-bubble\audio.h(3): fatal error C1083: Cannot open include file: 'fmod.hpp': No such file or directory
+  Scene.cpp
+d:\temp\vj\lab\exopengl3\2dgame\02-bubble\02-bubble\audio.h(3): fatal error C1083: Cannot open include file: 'fmod.hpp': No such file or directory
+  Shader.cpp
+  ShaderProgram.cpp
+  Enemy.cpp
+  Sprite.cpp
+  Texture.cpp
+  TileMap.cpp
+d:\temp\vj\lab\exopengl3\2dgame\02-bubble\02-bubble\tilemap.cpp(23): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
